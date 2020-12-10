@@ -3088,6 +3088,7 @@ class CustomRulesBuilder extends React.Component {
     this.indexCondition = 0;
     this.keywordsFullList = [];
     this.indexKeyword = 0;
+    this.fullValuesList = [];
     this.handleOperatorsClick = this.handleOperatorsClick.bind(this);
     this.handleFiltering = this.handleFiltering.bind(this);
     this.handleKeywordsClick = this.handleKeywordsClick.bind(this);
@@ -3240,6 +3241,9 @@ class CustomRulesBuilder extends React.Component {
                 );
               });
             }
+            if(ruleParts[2].replaceAll("\"", "").trim() === "") {
+              this.fullValuesList = valuesList;
+            }
             keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase() + " \"" + ruleParts[2].toUpperCase().replaceAll("\"", "") + "\"";
           }
         }
@@ -3299,7 +3303,7 @@ class CustomRulesBuilder extends React.Component {
   handleValuesClick(value) {
     const ruleParts = this.state.keywords.split(" ");
     const keywords = ruleParts[0] + " " + ruleParts[1] + " \"" + value + "\"";
-    this.setKeywords(keywords);
+    this.setKeywords(keywords, undefined, true);
   }
   
   handleKeywordsClick(id) {
@@ -3307,7 +3311,7 @@ class CustomRulesBuilder extends React.Component {
     this.setKeywords(keywords, id);
   }
 
-  setKeywords(keywords, id) {
+  setKeywords(keywords, id, resetValuesList) {
     const event = {
       target: {
         value: keywords
@@ -3318,6 +3322,9 @@ class CustomRulesBuilder extends React.Component {
     };
     if(id !== undefined) {
       objectKeywords["id"] = id;
+    }
+    if(resetValuesList === true) {
+      objectKeywords["valuesList"] = [];
     }
     this.setState(objectKeywords);
     this.handleFiltering(event);
@@ -3374,7 +3381,7 @@ class CustomRulesBuilder extends React.Component {
         }
 
         if(operatorObject.type === "list") {
-          let values = this.state.valuesList.map((valueObject) => {
+          let values = this.fullValuesList.map((valueObject) => {
             return (valueObject.value);
           });
           if(values.indexOf(conditionValue) < 0) {
@@ -3393,7 +3400,7 @@ class CustomRulesBuilder extends React.Component {
               paramName: paramName,
               operator: operator,
               conditionValue: conditionValue,
-              valuesList: this.state.valuesList
+              fullValuesList: this.fullValuesList
             }]),
             keywords: "",
             errorMessage: "",
@@ -3441,7 +3448,7 @@ class CustomRulesBuilder extends React.Component {
           paramName: ruleConditions[i].paramName,
           operator: ruleConditions[i].operator,
           conditionValue: ruleConditions[i].conditionValue,
-          valuesList: ruleConditions[i].valuesList
+          fullValuesList: ruleConditions[i].fullValuesList
         });
       }
     }
