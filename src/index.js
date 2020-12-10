@@ -3484,7 +3484,7 @@ class ConditionRow extends React.Component {
         {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
         <button>{this.props.condition.operator}</button>
         <input type="text" value={this.props.condition.conditionValue} readOnly />
-        <button onClick={(id) => this.props.onSubmit(this.props.condition.id)}>Removee</button>
+        <button onClick={(id) => this.props.onSubmit(this.props.condition.id)}>Remove</button>
       </div>
     );
   }
