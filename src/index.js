@@ -3293,32 +3293,36 @@ class CustomRulesBuilder extends React.Component {
     const ruleParts = this.state.keywords.split(" ");
     let isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
     const keywords = ruleParts[0] + (isSpecialKey === true ? " " + ruleParts[1] : "") + " " + name + " \"\"";
-    const event = {
-      target: {
-        value: keywords
-      }
-    };
-    this.setState({keywords: keywords});
-    this.handleFiltering(event);
+    this.setKeywords(keywords);
   }
 
   handleValuesClick(value) {
     const ruleParts = this.state.keywords.split(" ");
     const keywords = ruleParts[0] + " " + ruleParts[1] + " \"" + value + "\"";
-    this.setState({keywords: keywords});
+    this.setKeywords(keywords);
   }
   
   handleKeywordsClick(id) {
     const keywords = this.keywordsFullList[id].keyword + (this.keywordsFullList[id].description.tokens !== undefined ? "." : " ");
+    this.setKeywords(keywords, id);
+  }
+
+  setKeywords(keywords, id) {
     const event = {
       target: {
         value: keywords
       }
     };
-    this.setState({keywords: keywords, id: id});
+    let objectKeywords = {
+      keywords: keywords
+    };
+    if(id !== undefined) {
+      objectKeywords["id"] = id;
+    }
+    this.setState(objectKeywords);
     this.handleFiltering(event);
   }
-  
+
   handleMouseOver(id) {
     this.setState({helpText: this.keywordsFullList[id].description.help});
   }
@@ -3338,13 +3342,7 @@ class CustomRulesBuilder extends React.Component {
       toAutoComplete = true;
     }
     if(toAutoComplete === true) {
-      this.setState({keywords: keywords});
-      const event = {
-          target: {
-            value: keywords
-          }
-      };
-      this.handleFiltering(event);
+      this.setKeywords(keywords);
     }
   }
 
@@ -3454,7 +3452,7 @@ class CustomRulesBuilder extends React.Component {
     return (
       <>
         <SearchBar keywords={this.state.keywords} onChange={this.handleFiltering} onSubmit={this.handleSubmit} onAutoComplete={this.handleAutoComplete} />
-    		<FilteredResults keywordsList={this.state.keywordsList} operatorsList={this.state.operatorsList} valuesList={this.state.valuesList} isSpecialKey={this.state.isSpecialKey} step={this.state.step} helpText={this.state.helpText} onKeywordsClick={this.handleKeywordsClick} onOperatorsClick={this.handleOperatorsClick} onValuesClick={this.handleValuesClick} onMouseOver={this.handleMouseOver} />
+        <FilteredResults keywordsList={this.state.keywordsList} operatorsList={this.state.operatorsList} valuesList={this.state.valuesList} isSpecialKey={this.state.isSpecialKey} step={this.state.step} helpText={this.state.helpText} onKeywordsClick={this.handleKeywordsClick} onOperatorsClick={this.handleOperatorsClick} onValuesClick={this.handleValuesClick} onMouseOver={this.handleMouseOver} />
         <ErrorLabel errorMessage={this.state.errorMessage} />
         <RuleConditions conditions={this.state.ruleConditions} onSubmit={this.handleRemove} />
       </>
@@ -3486,7 +3484,7 @@ class ConditionRow extends React.Component {
         {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
         <button>{this.props.condition.operator}</button>
         <input type="text" value={this.props.condition.conditionValue} readOnly />
-        <button onClick={(id) => this.props.onSubmit(this.props.condition.id)}>Remove</button>
+        <button onClick={(id) => this.props.onSubmit(this.props.condition.id)}>Removee</button>
       </div>
     );
   }
