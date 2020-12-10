@@ -2993,7 +2993,8 @@ class FilteredResults extends React.Component {
               {this.props.step === 1 &&                
                 <KeywordsPanel keywordsList={this.props.keywordsList} onClick={this.props.onKeywordsClick} onMouseOver={this.props.onMouseOver} />
               }
-              {(this.props.step === 2 || (this.props.isSpecialKey === true && this.props.step === 3)) &&
+              {((this.props.isSpecialKey !== true && this.props.step === 2) ||
+                (this.props.isSpecialKey === true && this.props.step === 3)) &&
                 <OperatorsPanel operatorsList={this.props.operatorsList} onClick={this.props.onOperatorsClick} />
               }
               {this.props.step === 3 &&
@@ -3088,6 +3089,7 @@ class CustomRulesBuilder extends React.Component {
     this.indexCondition = 0;
     this.keywordsFullList = [];
     this.indexKeyword = 0;
+    this.fullOperatorsList = [];
     this.fullValuesList = [];
     this.handleOperatorsClick = this.handleOperatorsClick.bind(this);
     this.handleFiltering = this.handleFiltering.bind(this);
@@ -3221,6 +3223,9 @@ class CustomRulesBuilder extends React.Component {
           this.handleFiltering(event);
         } else {
           operatorsList = this.loadOperators(ruleParts, 1, operatorsList);
+          if(ruleParts[1].replaceAll("\"", "").trim() === "") {
+            this.fullOperatorsList = operatorsList;
+          }
           keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase();
         }
         break;
@@ -3228,6 +3233,9 @@ class CustomRulesBuilder extends React.Component {
         isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
         if(isSpecialKey === true) {
           operatorsList = this.loadOperators(ruleParts, 2, operatorsList);
+          if(ruleParts[2].replaceAll("\"", "").trim() === "") {
+            this.fullOperatorsList = operatorsList;
+          }
           keywords = ruleParts[0] + " " + ruleParts[1] + " " + ruleParts[2].toUpperCase();
         } else {
           const type = this.getDataFromKeywordsFullList(ruleParts, "type");
@@ -3366,9 +3374,9 @@ class CustomRulesBuilder extends React.Component {
       const operator = (isSpecialKey !== true ? ruleParts[1] : ruleParts[2]);
       const conditionValue = (isSpecialKey !== true ? ruleParts[2].replaceAll("\"", "") : ruleParts[3].replaceAll("\"", ""));
       let operatorObject = null;
-      for(let i = 0; operatorObject === null && i < this.state.operatorsList.length; i++) {
-        if(operator === this.state.operatorsList[i].name) {
-          operatorObject = this.state.operatorsList[i].operator;
+      for(let i = 0; operatorObject === null && i < this.fullOperatorsList.length; i++) {
+        if(operator === this.fullOperatorsList[i].name) {
+          operatorObject = this.fullOperatorsList[i].operator;
         }
       }
       if(operatorObject !== null) {
@@ -3396,7 +3404,7 @@ class CustomRulesBuilder extends React.Component {
               condition: this.state.keywords,
               firstPartObjects: firstPartObjects,
               isSpecialKey: isSpecialKey,
-              operatorsList: this.state.operatorsList,
+              fullOperatorsList: this.fullOperatorsList,
               paramName: paramName,
               operator: operator,
               conditionValue: conditionValue,
@@ -3444,7 +3452,7 @@ class CustomRulesBuilder extends React.Component {
           condition: ruleConditions[i].condition,
           firstPartObjects: ruleConditions[i].firstPartObjects,
           isSpecialKey: ruleConditions[i].isSpecialKey,
-          operatorsList: ruleConditions[i].operatorsList,
+          fullOperatorsList: ruleConditions[i].fullOperatorsList,
           paramName: ruleConditions[i].paramName,
           operator: ruleConditions[i].operator,
           conditionValue: ruleConditions[i].conditionValue,
@@ -3488,9 +3496,9 @@ class ConditionRow extends React.Component {
             <button key={object.id}>{object.name}</button>
           );
         })}
-        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
+        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} />}
         <button>{this.props.condition.operator}</button>
-        <input type="text" value={this.props.condition.conditionValue} readOnly />
+        <input type="text" value={this.props.condition.conditionValue} />
         <button onClick={(id) => this.props.onSubmit(this.props.condition.id)}>Remove</button>
       </div>
     );
