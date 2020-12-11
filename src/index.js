@@ -3099,6 +3099,7 @@ class CustomRulesBuilder extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleRemove = this.handleRemove.bind(this);
     this.handleAutoComplete = this.handleAutoComplete.bind(this);
+    this.handleConditionUpdate = this.handleConditionUpdate.bind(this);
   }
 
   UNSAFE_componentWillMount() {
@@ -3460,6 +3461,10 @@ class CustomRulesBuilder extends React.Component {
         });
       }
     }
+    this.handleConditionUpdate(newConditions);
+  }
+
+  handleConditionUpdate(newConditions) {
     this.setState({ruleConditions: newConditions});
   }
 
@@ -3469,7 +3474,7 @@ class CustomRulesBuilder extends React.Component {
         <SearchBar keywords={this.state.keywords} onChange={this.handleFiltering} onSubmit={this.handleSubmit} onAutoComplete={this.handleAutoComplete} />
         <FilteredResults keywordsList={this.state.keywordsList} operatorsList={this.state.operatorsList} valuesList={this.state.valuesList} isSpecialKey={this.state.isSpecialKey} step={this.state.step} helpText={this.state.helpText} onKeywordsClick={this.handleKeywordsClick} onOperatorsClick={this.handleOperatorsClick} onValuesClick={this.handleValuesClick} onMouseOver={this.handleMouseOver} />
         <ErrorLabel errorMessage={this.state.errorMessage} />
-        <RuleConditions conditions={this.state.ruleConditions} onSubmit={this.handleRemove} />
+        <RuleConditions conditions={this.state.ruleConditions} onConditionUpdate={this.handleConditionUpdate} onRemove={this.handleRemove} />
       </>
     );
   }
@@ -3490,28 +3495,114 @@ class ConditionRow extends React.Component {
 
   render() {
     return (
-      <div>
+      <>
         {this.props.condition.firstPartObjects.map((object) => {
           return (
-            <button key={object.id}>{object.name}</button>
+            <button key={object.id} onClick={(keyword, id) => this.props.onFirstPartObjectClick(object.keyword, this.props.condition.id)}>{object.name}</button>
           );
         })}
-        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} />}
-        <button>{this.props.condition.operator}</button>
-        <input type="text" value={this.props.condition.conditionValue} />
-        <button onClick={(id) => this.props.onSubmit(this.props.condition.id)}>Remove</button>
-      </div>
+        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
+        <button key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>
+        <input type="text" value={this.props.condition.conditionValue} readOnly />
+        <button onClick={(id) => this.props.onRemove(this.props.condition.id)}>Remove</button>
+        {this.props.idEdited === this.props.condition.id &&
+          <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
+        }
+      </>
+    );
+  }
+}
+
+class ConditionEditRow extends React.Component {
+  render() {
+    return (
+      <>
+      {this.props.list && this.props.list.map((item) => {
+        return (
+          <div key={item.id}>
+            <button onClick={(entity, name, id) => this.props.onEntityClick(this.props.entity, item.name, this.props.id)}>{item.name}</button>
+          </div>
+        );
+      })}
+      </>
     );
   }
 }
 
 class RuleConditions extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      idEdited: -1,
+      entity: "",
+      list: []
+    };
+    this.handleOperatorClick = this.handleOperatorClick.bind(this);
+    this.handleFirstPartObjectClick = this.handleFirstPartObjectClick.bind(this);
+    this.handleEntityClick = this.handleEntityClick.bind(this);
+  }
+
+  handleFirstPartObjectClick(object, id) {
+    this.setState({entity: "firstPartObject", idEdited: id});
+  }
+
+  handleOperatorClick(operatorsList, id) {
+    this.setState({entity: "operator", list: operatorsList, idEdited: id});
+  }
+
+  handleEntityClick(entity, name, id) {
+    if(entity === "operator") {
+      const ruleConditions = this.props.conditions;
+      let newConditions = [];
+      for(let i=0; i < ruleConditions.length; i++) {
+        if(ruleConditions[i].id !== id) {
+          newConditions.push({
+            id: ruleConditions[i].id,
+            condition: ruleConditions[i].condition,
+            firstPartObjects: ruleConditions[i].firstPartObjects,
+            isSpecialKey: ruleConditions[i].isSpecialKey,
+            fullOperatorsList: ruleConditions[i].fullOperatorsList,
+            paramName: ruleConditions[i].paramName,
+            operator: ruleConditions[i].operator,
+            conditionValue: ruleConditions[i].conditionValue,
+            fullValuesList: ruleConditions[i].fullValuesList
+          });
+        } else {
+          const conditionParts = ruleConditions[i].condition.split(" ");
+          let condition = conditionParts[0];
+          if(ruleConditions[i].isSpecialKey === true) {
+            condition += " \"" + conditionParts[1].replaceAll("\"", "") + "\" " + name + " \"" + conditionParts[3].replaceAll("\"", "") + "\"";
+          } else {
+            condition += " " + name + " \"" + conditionParts[2].replaceAll("\"", "") + "\"";
+          }
+          newConditions.push({
+            id: ruleConditions[i].id,
+            condition: condition,
+            firstPartObjects: ruleConditions[i].firstPartObjects,
+            isSpecialKey: ruleConditions[i].isSpecialKey,
+            fullOperatorsList: ruleConditions[i].fullOperatorsList,
+            paramName: ruleConditions[i].paramName,
+            operator: name,
+            conditionValue: ruleConditions[i].conditionValue,
+            fullValuesList: ruleConditions[i].fullValuesList
+          });
+        }
+      }
+      this.props.onConditionUpdate(newConditions);
+    } else if(entity === "firstPartObject") {
+      
+    }
+    this.setState({entity: "", list: [], idEdited: -1});
+  }
+
   render() {
     return (
       <>
         {this.props.conditions && this.props.conditions.map((ruleCondition) => {
           return (
-            <ConditionRow key={ruleCondition.id} condition={ruleCondition} onSubmit={this.props.onSubmit} />
+            <div key={ruleCondition.id}>
+              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartObjectClick={this.handleFirstPartObjectClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onRemove={this.props.onRemove} />
+            </div>
           );
         })}
       </>
