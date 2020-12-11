@@ -3494,6 +3494,7 @@ class ConditionRow extends React.Component {
   }
 
   render() {
+    //TODO replace readOnly with onChange to update "condition" value
     return (
       <>
         {this.props.condition.firstPartObjects.map((object) => {
@@ -3544,6 +3545,7 @@ class RuleConditions extends React.Component {
 
   handleFirstPartObjectClick(object, id) {
     this.setState({entity: "firstPartObject", idEdited: id});
+    //TODO to implement
   }
 
   handleOperatorClick(operatorsList, id) {
@@ -3555,19 +3557,7 @@ class RuleConditions extends React.Component {
       const ruleConditions = this.props.conditions;
       let newConditions = [];
       for(let i=0; i < ruleConditions.length; i++) {
-        if(ruleConditions[i].id !== id) {
-          newConditions.push({
-            id: ruleConditions[i].id,
-            condition: ruleConditions[i].condition,
-            firstPartObjects: ruleConditions[i].firstPartObjects,
-            isSpecialKey: ruleConditions[i].isSpecialKey,
-            fullOperatorsList: ruleConditions[i].fullOperatorsList,
-            paramName: ruleConditions[i].paramName,
-            operator: ruleConditions[i].operator,
-            conditionValue: ruleConditions[i].conditionValue,
-            fullValuesList: ruleConditions[i].fullValuesList
-          });
-        } else {
+        if(ruleConditions[i].id === id) {
           const conditionParts = ruleConditions[i].condition.split(" ");
           let condition = conditionParts[0];
           if(ruleConditions[i].isSpecialKey === true) {
@@ -3575,22 +3565,20 @@ class RuleConditions extends React.Component {
           } else {
             condition += " " + name + " \"" + conditionParts[2].replaceAll("\"", "") + "\"";
           }
-          newConditions.push({
-            id: ruleConditions[i].id,
-            condition: condition,
-            firstPartObjects: ruleConditions[i].firstPartObjects,
-            isSpecialKey: ruleConditions[i].isSpecialKey,
-            fullOperatorsList: ruleConditions[i].fullOperatorsList,
-            paramName: ruleConditions[i].paramName,
-            operator: name,
-            conditionValue: ruleConditions[i].conditionValue,
-            fullValuesList: ruleConditions[i].fullValuesList
-          });
+          ruleConditions[i].condition = condition;
+          ruleConditions[i].operator = name;
         }
+        newConditions.push(ruleConditions[i]);
       }
+      console.log(newConditions);
       this.props.onConditionUpdate(newConditions);
     } else if(entity === "firstPartObject") {
-      
+      const ruleConditions = this.props.conditions;
+      let newConditions = [];
+      for(let i=0; i < ruleConditions.length; i++) {
+        
+      }
+      this.props.onConditionUpdate(newConditions);
     }
     this.setState({entity: "", list: [], idEdited: -1});
   }
