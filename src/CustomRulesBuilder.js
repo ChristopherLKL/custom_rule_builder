@@ -491,6 +491,7 @@ class CustomRulesBuilder extends React.Component {
   }
 
   handleConditionUpdate(newConditions) {
+//    console.log(newConditions);
     this.setState({ruleConditions: newConditions});
   }
 

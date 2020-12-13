@@ -1,12 +1,24 @@
 import React from 'react';
 
 class ConditionRow extends React.Component {
-  UNSAFE_componentWillMount() {
-    console.log(this.props.condition);
+  constructor(props) {
+    super(props);
+    this.state = {
+      id: this.props.condition.id
+    };
+    this.handleParamNameChange = this.handleParamNameChange.bind(this);
+    this.handleConditionValueChange = this.handleConditionValueChange.bind(this);
+  }
+
+  handleParamNameChange(e) {
+    this.props.onParamNameChange(this.state.id, e.target.value);
+  }
+
+  handleConditionValueChange(e) {
+    this.props.onConditionValueChange(this.state.id, e.target.value);
   }
 
   render() {
-    //TODO replace readOnly with onChange to update "condition" value
     return (
       <>
         {this.props.condition.firstPartKeywords.map((object) => {
@@ -14,9 +26,9 @@ class ConditionRow extends React.Component {
             <button key={object.id} onClick={(keyword, id) => this.props.onFirstPartKeywordClick(object.keyword, this.props.condition.id)}>{object.name}</button>
           );
         })}
-        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
+        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} onChange={this.handleParamNameChange} />}
         {this.props.condition.operator && <button key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>}
-        {this.props.condition.conditionValue !== null && <input type="text" value={this.props.condition.conditionValue} readOnly />}
+        {this.props.condition.conditionValue !== null && <input type="text" value={this.props.condition.conditionValue} onChange={this.handleConditionValueChange} />}
         <button onClick={(id) => this.props.onRemove(this.props.condition.id)}>Remove</button>
         {this.props.idEdited === this.props.condition.id &&
           <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
@@ -51,6 +63,46 @@ class RuleConditions extends React.Component {
     this.handleOperatorClick = this.handleOperatorClick.bind(this);
     this.handleFirstPartKeywordClick = this.handleFirstPartKeywordClick.bind(this);
     this.handleEntityClick = this.handleEntityClick.bind(this);
+    this.handleParamNameChange = this.handleParamNameChange.bind(this);
+    this.handleConditionValueChange = this.handleConditionValueChange.bind(this);
+  }
+
+  handleParamNameChange(id, paramName) {
+    const ruleConditions = this.props.conditions;
+    let newConditions = [];
+    for(let i=0; i < ruleConditions.length; i++) {
+      if(ruleConditions[i].id === id && ruleConditions[i].isSpecialKey === true) {
+        const conditionParts = ruleConditions[i].condition.split(" ");
+        let condition = conditionParts[0];
+        condition += " \"" + paramName + "\" " + (conditionParts[2] !== undefined ? conditionParts[2].toUpperCase() : "") + " \"" + (conditionParts[3] !== undefined ? conditionParts[3].replaceAll("\"", "") : "") + "\"";
+        ruleConditions[i].condition = condition;
+        ruleConditions[i].paramName = paramName;
+      }
+      newConditions.push(ruleConditions[i]);
+    }
+//    console.log(newConditions);
+    this.props.onConditionUpdate(newConditions);
+  }
+
+  handleConditionValueChange(id, conditionValue) {
+    const ruleConditions = this.props.conditions;
+    let newConditions = [];
+    for(let i=0; i < ruleConditions.length; i++) {
+      if(ruleConditions[i].id === id) {
+        const conditionParts = ruleConditions[i].condition.split(" ");
+        let condition = conditionParts[0];
+        if(ruleConditions[i].isSpecialKey === true) {
+          condition += " \"" + (conditionParts[1] !== undefined ? conditionParts[1].replaceAll("\"", "") : "") + "\" " + (conditionParts[2] !== undefined ? conditionParts[2].toUpperCase() : "") + " \"" + conditionValue.replaceAll("\"", "") + "\"";
+        } else {
+          condition += " " + (conditionParts[1] !== undefined ? conditionParts[1].toUpperCase() : "") + " \"" + conditionValue.replaceAll("\"", "") + "\"";
+        }
+        ruleConditions[i].condition = condition;
+        ruleConditions[i].conditionValue = conditionValue;
+      }
+      newConditions.push(ruleConditions[i]);
+    }
+//    console.log(newConditions);
+    this.props.onConditionUpdate(newConditions);
   }
 
   handleFirstPartKeywordClick(object, id) {
@@ -80,7 +132,7 @@ class RuleConditions extends React.Component {
         }
         newConditions.push(ruleConditions[i]);
       }
-      console.log(newConditions);
+//      console.log(newConditions);
       this.props.onConditionUpdate(newConditions);
     } else if(entity === "firstPartKeyword") {
       const ruleConditions = this.props.conditions;
@@ -152,7 +204,7 @@ class RuleConditions extends React.Component {
           ruleConditions[i].firstPartKeywords = newFirstPartKeywords;
           ruleConditions[i].isSpecialKey = object.isSpecialKey;
           ruleConditions[i].fullValuesList = null;
-          console.log(ruleConditions[i]);
+//          console.log(ruleConditions[i]);
         }
         newConditions.push(ruleConditions[i]);
       }
@@ -167,7 +219,7 @@ class RuleConditions extends React.Component {
         {this.props.conditions && this.props.conditions.map((ruleCondition) => {
           return (
             <div key={ruleCondition.id}>
-              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartKeywordClick={this.handleFirstPartKeywordClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onRemove={this.props.onRemove} />
+              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartKeywordClick={this.handleFirstPartKeywordClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onParamNameChange={this.handleParamNameChange} onConditionValueChange={this.handleConditionValueChange} onRemove={this.props.onRemove} />
             </div>
           );
         })}
