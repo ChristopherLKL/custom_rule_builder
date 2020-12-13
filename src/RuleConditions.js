@@ -1,0 +1,179 @@
+import React from 'react';
+
+class ConditionRow extends React.Component {
+  UNSAFE_componentWillMount() {
+    console.log(this.props.condition);
+  }
+
+  render() {
+    //TODO replace readOnly with onChange to update "condition" value
+    return (
+      <>
+        {this.props.condition.firstPartKeywords.map((object) => {
+          return (
+            <button key={object.id} onClick={(keyword, id) => this.props.onFirstPartKeywordClick(object.keyword, this.props.condition.id)}>{object.name}</button>
+          );
+        })}
+        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
+        {this.props.condition.operator && <button key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>}
+        {this.props.condition.conditionValue !== null && <input type="text" value={this.props.condition.conditionValue} readOnly />}
+        <button onClick={(id) => this.props.onRemove(this.props.condition.id)}>Remove</button>
+        {this.props.idEdited === this.props.condition.id &&
+          <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
+        }
+      </>
+    );
+  }
+}
+
+function ConditionEditRow(props) {
+  return (
+    <>
+    {props.list && props.list.map((item) => {
+      return (
+        <div key={item.id}>
+          <button onClick={(entity, name, id) => props.onEntityClick(props.entity, item.name, props.id, item)}>{item.name}</button>
+        </div>
+      );
+    })}
+    </>
+  );
+}
+
+class RuleConditions extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      idEdited: -1,
+      entity: "",
+      list: []
+    };
+    this.handleOperatorClick = this.handleOperatorClick.bind(this);
+    this.handleFirstPartKeywordClick = this.handleFirstPartKeywordClick.bind(this);
+    this.handleEntityClick = this.handleEntityClick.bind(this);
+  }
+
+  handleFirstPartKeywordClick(object, id) {
+    const parents = this.props.getParentsFromKeyword(object);
+    this.setState({entity: "firstPartKeyword", list: parents, idEdited: id});
+  }
+
+  handleOperatorClick(operatorsList, id) {
+    this.setState({entity: "operator", list: operatorsList, idEdited: id});
+  }
+
+  handleEntityClick(entity, name, id, object) {
+    if(entity === "operator") {
+      const ruleConditions = this.props.conditions;
+      let newConditions = [];
+      for(let i=0; i < ruleConditions.length; i++) {
+        if(ruleConditions[i].id === id) {
+          const conditionParts = ruleConditions[i].condition.split(" ");
+          let condition = conditionParts[0];
+          if(ruleConditions[i].isSpecialKey === true) {
+            condition += " \"" + (conditionParts[1] !== undefined ? conditionParts[1].replaceAll("\"", "") : "") + "\" " + name + " \"" + (conditionParts[3] !== undefined ? conditionParts[3].replaceAll("\"", "") : "") + "\"";
+          } else {
+            condition += " " + name + " \"" + (conditionParts[2] !== undefined ? conditionParts[2].replaceAll("\"", "") : "") + "\"";
+          }
+          ruleConditions[i].condition = condition;
+          ruleConditions[i].operator = name;
+        }
+        newConditions.push(ruleConditions[i]);
+      }
+      console.log(newConditions);
+      this.props.onConditionUpdate(newConditions);
+    } else if(entity === "firstPartKeyword") {
+      const ruleConditions = this.props.conditions;
+      const newSubKeywords = object.keyword.split(".");
+      let newConditions = [];
+      for(let i=0; i < ruleConditions.length; i++) {
+        if(ruleConditions[i].id === id) {
+          let newFirstPartKeywords = [];
+          let stopAddingKeyword = false;
+          for(let j = 0; stopAddingKeyword !== true && j < ruleConditions[i].firstPartKeywords.length; j++) {
+            const originalSubKeywords = ruleConditions[i].firstPartKeywords[j].keyword.split(".");
+            let newFirstPartKeyword = null;
+            let nextFirstPartKeyword = null;
+            if(newSubKeywords.length === originalSubKeywords.length) {
+              stopAddingKeyword = true;
+              newFirstPartKeyword = {
+                id: this.props.getIdFromKeyword(object.keyword),
+                keyword: object.keyword,
+                name: object.name,
+                description: object.description
+              };
+              if(object.isSpecialKey === true) {
+                ruleConditions[i].paramName = "";
+              } else {
+                ruleConditions[i].paramName = null;
+              }
+              if(object.description.standalone === true) {
+                ruleConditions[i].fullOperatorsList = [];
+                for(let k = 0, j = 0, name = ""; k < object.description.operators.length; k++) {
+                  name = object.description.operators[k].name;
+                  ruleConditions[i].fullOperatorsList.push({id: j, name: name, operator: object.description.operators[k]});
+                  j++;
+                  if(object.description.operators[k].negation !== undefined) {
+                    name = object.description.operators[k].negation;
+                    ruleConditions[i].fullOperatorsList.push({id: j, name: name, operator: object.description.operators[k]});
+                    j++;
+                  }
+                }
+                ruleConditions[i].operator = ruleConditions[i].fullOperatorsList[0].name;
+                ruleConditions[i].conditionValue = "";
+              } else {
+                let firstNextKeywordPartKeyword = null;
+                let name = null;
+                for(let property in object.description.tokens) {
+                  if(firstNextKeywordPartKeyword === null) {
+                    name = property;
+                    firstNextKeywordPartKeyword = object.description.tokens[property];
+                  }
+                }
+                
+                nextFirstPartKeyword = {
+                  id: this.props.getIdFromKeyword(object.keyword + "." + name),
+                  keyword: object.keyword + "." + name,
+                  name: name,
+                  description: firstNextKeywordPartKeyword
+                };
+                
+                ruleConditions[i].fullOperatorsList = [];
+                ruleConditions[i].operator = null;
+                ruleConditions[i].conditionValue = null;
+              }
+            }
+            newFirstPartKeywords.push(newFirstPartKeyword !== null ? newFirstPartKeyword : ruleConditions[i].firstPartKeywords[j]);
+            if(nextFirstPartKeyword !== null) {
+              newFirstPartKeywords.push(nextFirstPartKeyword);
+            }
+          }
+          ruleConditions[i].condition = object.keyword;
+          ruleConditions[i].firstPartKeywords = newFirstPartKeywords;
+          ruleConditions[i].isSpecialKey = object.isSpecialKey;
+          ruleConditions[i].fullValuesList = null;
+          console.log(ruleConditions[i]);
+        }
+        newConditions.push(ruleConditions[i]);
+      }
+      this.props.onConditionUpdate(newConditions);
+    }
+    this.setState({entity: "", list: [], idEdited: -1});
+  }
+
+  render() {
+    return (
+      <>
+        {this.props.conditions && this.props.conditions.map((ruleCondition) => {
+          return (
+            <div key={ruleCondition.id}>
+              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartKeywordClick={this.handleFirstPartKeywordClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onRemove={this.props.onRemove} />
+            </div>
+          );
+        })}
+      </>
+    );
+  }
+}
+
+export default RuleConditions;
