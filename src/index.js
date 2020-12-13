@@ -3100,6 +3100,8 @@ class CustomRulesBuilder extends React.Component {
     this.handleRemove = this.handleRemove.bind(this);
     this.handleAutoComplete = this.handleAutoComplete.bind(this);
     this.handleConditionUpdate = this.handleConditionUpdate.bind(this);
+    this.getParentsFromKeyword = this.getParentsFromKeyword.bind(this);
+    this.getIdFromKeyword = this.getIdFromKeyword.bind(this);
   }
 
   UNSAFE_componentWillMount() {
@@ -3115,6 +3117,16 @@ class CustomRulesBuilder extends React.Component {
       this.keywordsFullList.push({id: this.indexKeyword, keyword: rulePart, name: name, description: object});
       this.indexKeyword++;
     }
+  }
+
+  getIdFromKeyword(keyword) {
+    let id = -1;
+    for(let i = 0; id < 0 && i < this.keywordsFullList.length; i++) {
+      if(this.keywordsFullList[i].keyword === keyword) {
+        id = this.keywordsFullList[i].id;
+      }
+    }
+    return id;
   }
 
   buildChildrenList(object, rulePart) {
@@ -3282,9 +3294,7 @@ class CustomRulesBuilder extends React.Component {
     if(this.keywordsFullList[id] === undefined || this.keywordsFullList[id].description.standalone !== true) {
       return false;
     }
-    let name = "";
-    let j = 0;
-    for(let i = 0; this.keywordsFullList[id] !== undefined && i < this.keywordsFullList[id].description.operators.length; i++) {
+    for(let i = 0, j = 0, name = ""; this.keywordsFullList[id] !== undefined && i < this.keywordsFullList[id].description.operators.length; i++) {
       if(ruleParts[partIndex].toUpperCase().trim() === "" ||
         this.keywordsFullList[id].description.operators[i].name.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim())) {
         name = this.keywordsFullList[id].description.operators[i].name;
@@ -3364,7 +3374,7 @@ class CustomRulesBuilder extends React.Component {
 
   handleSubmit() {
     const ruleConditions = this.state.ruleConditions;
-    const firstPartObjects = this.buildRuleConditionFirstPartObjects();
+    const firstPartKeywords = this.buildRuleConditionFirstPartKeywords();
     const ruleParts = this.state.keywords.split(" ");
     const isStandalone = this.getDataFromKeywordsFullList(ruleParts, "standalone");
     const isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
@@ -3403,7 +3413,7 @@ class CustomRulesBuilder extends React.Component {
             ruleConditions: ruleConditions.concat([{
               id: this.indexCondition,
               condition: this.state.keywords,
-              firstPartObjects: firstPartObjects,
+              firstPartKeywords: firstPartKeywords,
               isSpecialKey: isSpecialKey,
               fullOperatorsList: this.fullOperatorsList,
               paramName: paramName,
@@ -3427,7 +3437,7 @@ class CustomRulesBuilder extends React.Component {
     }
   }
 
-  buildRuleConditionFirstPartObjects() {
+  buildRuleConditionFirstPartKeywords() {
     const firstParts = this.state.keywords.split(" ")[0].split(".");
     let firstPartsObject = [];
     for(let currentPart="", i=0; i < firstParts.length; i++) {
@@ -3451,7 +3461,7 @@ class CustomRulesBuilder extends React.Component {
         newConditions.push({
           id: ruleConditions[i].id,
           condition: ruleConditions[i].condition,
-          firstPartObjects: ruleConditions[i].firstPartObjects,
+          firstPartKeywords: ruleConditions[i].firstPartKeywords,
           isSpecialKey: ruleConditions[i].isSpecialKey,
           fullOperatorsList: ruleConditions[i].fullOperatorsList,
           paramName: ruleConditions[i].paramName,
@@ -3468,13 +3478,26 @@ class CustomRulesBuilder extends React.Component {
     this.setState({ruleConditions: newConditions});
   }
 
+  getParentsFromKeyword(keyword) {
+    const parentCondition = keyword.substring(0, keyword.lastIndexOf("."));
+    let parents = [];
+    for(let i=0; parents.length === 0 && i < this.keywordsFullList.length; i++) {
+      if(this.keywordsFullList[i].keyword === parentCondition) {
+        for(const parent in this.keywordsFullList[i].description.tokens) {
+          parents.push({id: this.getIdFromKeyword(parentCondition + "." + parent), name: parent, keyword: parentCondition + "." + parent, description: this.keywordsFullList[i].description.tokens[parent]});
+        }
+      }
+    }
+    return parents;
+  }
+
   render() {
     return (
       <>
         <SearchBar keywords={this.state.keywords} onChange={this.handleFiltering} onSubmit={this.handleSubmit} onAutoComplete={this.handleAutoComplete} />
         <FilteredResults keywordsList={this.state.keywordsList} operatorsList={this.state.operatorsList} valuesList={this.state.valuesList} isSpecialKey={this.state.isSpecialKey} step={this.state.step} helpText={this.state.helpText} onKeywordsClick={this.handleKeywordsClick} onOperatorsClick={this.handleOperatorsClick} onValuesClick={this.handleValuesClick} onMouseOver={this.handleMouseOver} />
         <ErrorLabel errorMessage={this.state.errorMessage} />
-        <RuleConditions conditions={this.state.ruleConditions} onConditionUpdate={this.handleConditionUpdate} onRemove={this.handleRemove} />
+        <RuleConditions conditions={this.state.ruleConditions} onConditionUpdate={this.handleConditionUpdate} onRemove={this.handleRemove} getParentsFromKeyword={this.getParentsFromKeyword} getIdFromKeyword={this.getIdFromKeyword} />
       </>
     );
   }
@@ -3497,14 +3520,14 @@ class ConditionRow extends React.Component {
     //TODO replace readOnly with onChange to update "condition" value
     return (
       <>
-        {this.props.condition.firstPartObjects.map((object) => {
+        {this.props.condition.firstPartKeywords.map((object) => {
           return (
-            <button key={object.id} onClick={(keyword, id) => this.props.onFirstPartObjectClick(object.keyword, this.props.condition.id)}>{object.name}</button>
+            <button key={object.id} onClick={(keyword, id) => this.props.onFirstPartKeywordClick(object.keyword, this.props.condition.id)}>{object.name}</button>
           );
         })}
         {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} readOnly />}
-        <button key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>
-        <input type="text" value={this.props.condition.conditionValue} readOnly />
+        {this.props.condition.operator && <button key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>}
+        {this.props.condition.conditionValue !== null && <input type="text" value={this.props.condition.conditionValue} readOnly />}
         <button onClick={(id) => this.props.onRemove(this.props.condition.id)}>Remove</button>
         {this.props.idEdited === this.props.condition.id &&
           <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
@@ -3521,7 +3544,7 @@ class ConditionEditRow extends React.Component {
       {this.props.list && this.props.list.map((item) => {
         return (
           <div key={item.id}>
-            <button onClick={(entity, name, id) => this.props.onEntityClick(this.props.entity, item.name, this.props.id)}>{item.name}</button>
+            <button onClick={(entity, name, id) => this.props.onEntityClick(this.props.entity, item.name, this.props.id, item)}>{item.name}</button>
           </div>
         );
       })}
@@ -3539,20 +3562,20 @@ class RuleConditions extends React.Component {
       list: []
     };
     this.handleOperatorClick = this.handleOperatorClick.bind(this);
-    this.handleFirstPartObjectClick = this.handleFirstPartObjectClick.bind(this);
+    this.handleFirstPartKeywordClick = this.handleFirstPartKeywordClick.bind(this);
     this.handleEntityClick = this.handleEntityClick.bind(this);
   }
 
-  handleFirstPartObjectClick(object, id) {
-    this.setState({entity: "firstPartObject", idEdited: id});
-    //TODO to implement
+  handleFirstPartKeywordClick(object, id) {
+    const parents = this.props.getParentsFromKeyword(object);
+    this.setState({entity: "firstPartKeyword", list: parents, idEdited: id});
   }
 
   handleOperatorClick(operatorsList, id) {
     this.setState({entity: "operator", list: operatorsList, idEdited: id});
   }
 
-  handleEntityClick(entity, name, id) {
+  handleEntityClick(entity, name, id, object) {
     if(entity === "operator") {
       const ruleConditions = this.props.conditions;
       let newConditions = [];
@@ -3561,9 +3584,9 @@ class RuleConditions extends React.Component {
           const conditionParts = ruleConditions[i].condition.split(" ");
           let condition = conditionParts[0];
           if(ruleConditions[i].isSpecialKey === true) {
-            condition += " \"" + conditionParts[1].replaceAll("\"", "") + "\" " + name + " \"" + conditionParts[3].replaceAll("\"", "") + "\"";
+            condition += " \"" + (conditionParts[1] !== undefined ? conditionParts[1].replaceAll("\"", "") : "") + "\" " + name + " \"" + (conditionParts[3] !== undefined ? conditionParts[3].replaceAll("\"", "") : "") + "\"";
           } else {
-            condition += " " + name + " \"" + conditionParts[2].replaceAll("\"", "") + "\"";
+            condition += " " + name + " \"" + (conditionParts[2] !== undefined ? conditionParts[2].replaceAll("\"", "") : "") + "\"";
           }
           ruleConditions[i].condition = condition;
           ruleConditions[i].operator = name;
@@ -3572,11 +3595,80 @@ class RuleConditions extends React.Component {
       }
       console.log(newConditions);
       this.props.onConditionUpdate(newConditions);
-    } else if(entity === "firstPartObject") {
+    } else if(entity === "firstPartKeyword") {
       const ruleConditions = this.props.conditions;
+      const newSubKeywords = object.keyword.split(".");
       let newConditions = [];
       for(let i=0; i < ruleConditions.length; i++) {
-        
+        if(ruleConditions[i].id === id) {
+          const conditionParts = ruleConditions[i].condition.split(" ");
+          let newFirstPartKeywords = [];
+          let stopAddingKeyword = false;
+          for(let j = 0; stopAddingKeyword !== true && j < ruleConditions[i].firstPartKeywords.length; j++) {
+            const originalSubKeywords = ruleConditions[i].firstPartKeywords[j].keyword.split(".");
+            let newFirstPartKeyword = null;
+            let nextFirstPartKeyword = null;
+            if(newSubKeywords.length === originalSubKeywords.length) {
+              stopAddingKeyword = true;
+              newFirstPartKeyword = {
+                id: this.props.getIdFromKeyword(object.keyword),
+                keyword: object.keyword,
+                name: object.name,
+                description: object.description
+              };
+              if(object.isSpecialKey === true) {
+                ruleConditions[i].paramName = "";
+              } else {
+                ruleConditions[i].paramName = null;
+              }
+              if(object.description.standalone === true) {
+                ruleConditions[i].fullOperatorsList = [];
+                for(let k = 0, j = 0, name = ""; k < object.description.operators.length; k++) {
+                  name = object.description.operators[k].name;
+                  ruleConditions[i].fullOperatorsList.push({id: j, name: name, operator: object.description.operators[k]});
+                  j++;
+                  if(object.description.operators[k].negation !== undefined) {
+                    name = object.description.operators[k].negation;
+                    ruleConditions[i].fullOperatorsList.push({id: j, name: name, operator: object.description.operators[k]});
+                    j++;
+                  }
+                }
+                ruleConditions[i].operator = ruleConditions[i].fullOperatorsList[0].name;
+                ruleConditions[i].conditionValue = "";
+              } else {
+                let firstNextKeywordPartKeyword = null;
+                let name = null;
+                for(let property in object.description.tokens) {
+                  if(firstNextKeywordPartKeyword === null) {
+                    name = property;
+                    firstNextKeywordPartKeyword = object.description.tokens[property];
+                  }
+                }
+                
+                nextFirstPartKeyword = {
+                  id: this.props.getIdFromKeyword(object.keyword + "." + name),
+                  keyword: object.keyword + "." + name,
+                  name: name,
+                  description: firstNextKeywordPartKeyword
+                };
+                
+                ruleConditions[i].fullOperatorsList = [];
+                ruleConditions[i].operator = null;
+                ruleConditions[i].conditionValue = null;
+              }
+            }
+            newFirstPartKeywords.push(newFirstPartKeyword !== null ? newFirstPartKeyword : ruleConditions[i].firstPartKeywords[j]);
+            if(nextFirstPartKeyword !== null) {
+              newFirstPartKeywords.push(nextFirstPartKeyword);
+            }
+          }
+          ruleConditions[i].condition = object.keyword;
+          ruleConditions[i].firstPartKeywords = newFirstPartKeywords;
+          ruleConditions[i].isSpecialKey = object.isSpecialKey;
+          ruleConditions[i].fullValuesList = null;
+          console.log(ruleConditions[i]);
+        }
+        newConditions.push(ruleConditions[i]);
       }
       this.props.onConditionUpdate(newConditions);
     }
@@ -3589,7 +3681,7 @@ class RuleConditions extends React.Component {
         {this.props.conditions && this.props.conditions.map((ruleCondition) => {
           return (
             <div key={ruleCondition.id}>
-              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartObjectClick={this.handleFirstPartObjectClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onRemove={this.props.onRemove} />
+              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartKeywordClick={this.handleFirstPartKeywordClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onRemove={this.props.onRemove} />
             </div>
           );
         })}
