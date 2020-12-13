@@ -3601,7 +3601,6 @@ class RuleConditions extends React.Component {
       let newConditions = [];
       for(let i=0; i < ruleConditions.length; i++) {
         if(ruleConditions[i].id === id) {
-          const conditionParts = ruleConditions[i].condition.split(" ");
           let newFirstPartKeywords = [];
           let stopAddingKeyword = false;
           for(let j = 0; stopAddingKeyword !== true && j < ruleConditions[i].firstPartKeywords.length; j++) {
