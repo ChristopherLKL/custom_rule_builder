@@ -281,7 +281,7 @@ class CustomRulesBuilder extends React.Component {
             if(ruleParts[2].replaceAll("\"", "").trim() === "") {
               this.fullValuesList = valuesList;
             }
-            keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase() + " \"" + ruleParts[2].toUpperCase().replaceAll("\"", "") + "\"";
+            keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase() + " \"" + ruleParts[2].replaceAll("\"", "") + "\"";
           }
         }
         break;
@@ -415,12 +415,21 @@ class CustomRulesBuilder extends React.Component {
           }
         }
 
+        let originalValue = conditionValue;
         if(operatorObject.type === "list") {
           let values = this.fullValuesList.map((valueObject) => {
-            return (valueObject.value);
+            return ({original: valueObject.value, compare: valueObject.value.toLowerCase()});
           });
-          if(values.indexOf(conditionValue) < 0) {
+          if(values.map((value) => {return value.compare;}).indexOf(conditionValue.toLowerCase()) < 0) {
             isConditionValueValid = false;
+          } else {
+            originalValue = values.filter((value) => {
+              if(value.compare === conditionValue.toLowerCase()) {
+                return value;
+              }
+            }).map((value) => {
+              return value.original;
+            });
           }
         }
 
@@ -434,7 +443,7 @@ class CustomRulesBuilder extends React.Component {
               fullOperatorsList: this.fullOperatorsList,
               paramName: paramName,
               operator: operator,
-              conditionValue: conditionValue,
+              conditionValue: originalValue,
               fullValuesList: this.fullValuesList
             }]),
             keywords: "",
