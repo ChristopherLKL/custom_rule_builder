@@ -1,4 +1,11 @@
 import React from 'react';
+import './SearchBar.css';
+
+function ErrorLabel(props) {
+  return (
+    <div className="error_message">{props.errorMessage}</div>
+  );
+}
 
 class SearchBar extends React.Component {
   constructor(props) {
@@ -12,15 +19,18 @@ class SearchBar extends React.Component {
     } else if(e.key === "Tab") {
       e.preventDefault();
       this.props.onAutoComplete();
+    } else if(e.key === "Escape") {
+      this.props.hideFilteredResults();
     }
   }
 
   render() {
     return (
-      <>
-        When <input type="text" name="search" value={this.props.keywords} onChange={this.props.onChange} onKeyDown={this.handleKeyDown} size="100" />
-        <input type="button" name="add" value="Add" onClick={this.props.onSubmit} />
-      </>
+      <div className="search_bar">
+        When <input autoFocus className="input_field" type="text" name="search" value={this.props.keywords} onChange={this.props.onChange} onKeyDown={this.handleKeyDown} size="100" />
+        <input className="add_button" type="button" name="add" value="Add" onClick={this.props.onSubmit} />
+        <ErrorLabel errorMessage={this.props.errorMessage} />
+      </div>
     );
   }
 }

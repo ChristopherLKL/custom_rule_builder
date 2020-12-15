@@ -1,0 +1,62 @@
+.rule_conditions {
+	width: 900px;
+    margin-top: 10px;
+}
+
+.condition_row button {
+    z-index: 5;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-align: center;
+    border-right: none;
+    line-height: normal;
+    line-height: initial;
+    min-width: 90px;
+}
+
+.condition_row input {
+	height: 15px;
+	width: 174px;
+    border: 1px solid #ff8040;
+}
+
+.condition_row button.remove_button:hover {
+    color: #ffe6e6;
+    background: #ff0000;
+    cursor: default;
+    border: 1px solid #ff0000;
+}
+
+.condition_row button.remove_button {
+    color: #ff0000;
+    background: #ffe6e6;
+    border: 1px solid #ff0000;
+}
+
+.condition_row button.keyword_button:hover {
+    color: #FFFFFF;
+    background: #095FB3;
+    cursor: default;
+    border: 1px solid #095FB3;
+}
+
+.condition_row button.keyword_button {
+    color: #095FB3;
+    background: #DAE7F4;
+    border: 1px solid #095FB3;
+}
+
+.condition_row button.operator_button:hover {
+    color: #FFFFFF;
+    background: #008000;
+    cursor: default;
+    border: 1px solid #008000;
+}
+
+.condition_row button.operator_button {
+    color: #008000;
+    background: #dfffdf;
+    border: 1px solid #008000;
+}

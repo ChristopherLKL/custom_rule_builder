@@ -1,4 +1,5 @@
 import React from 'react';
+import './RuleConditions.css';
 
 class ConditionRow extends React.Component {
   constructor(props) {
@@ -20,27 +21,41 @@ class ConditionRow extends React.Component {
 
   render() {
     return (
-      <>
-        {this.props.condition.firstPartKeywords.map((object) => {
-          return (
-            <button key={object.id} onClick={(keyword, id) => this.props.onFirstPartKeywordClick(object.keyword, this.props.condition.id)}>{object.name}</button>
-          );
-        })}
-        {this.props.condition.isSpecialKey && <input type="text" value={this.props.condition.paramName} onChange={this.handleParamNameChange} />}
-        {this.props.condition.operator && <button key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>}
-        {this.props.condition.conditionValue !== null && <input type="text" value={this.props.condition.conditionValue} onChange={this.handleConditionValueChange} />}
-        <button onClick={(id) => this.props.onRemove(this.props.condition.id)}>Remove</button>
-        {this.props.idEdited === this.props.condition.id &&
-          <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
-        }
-      </>
+      <tbody className="condition_row">
+        <tr>
+          <td align="right">
+            {this.props.condition.firstPartKeywords.map((object) => {
+              return (
+                <button className="keyword_button" key={object.id} onClick={(keyword, id) => this.props.onFirstPartKeywordClick(object.keyword, this.props.condition.id)}>{object.name}</button>
+              );
+            })}
+            {this.props.condition.isSpecialKey && <input className="param_field" type="text" value={this.props.condition.paramName} onChange={this.handleParamNameChange} />}
+          </td>
+          <td width="90px">
+            {this.props.condition.operator && <button className="operator_button" key={this.props.condition.operator} onClick={(operatorsList, id) => this.props.onOperatorClick(this.props.condition.fullOperatorsList, this.props.condition.id)}>{this.props.condition.operator}</button>}
+          </td>
+          <td align="left">
+            {this.props.condition.conditionValue !== null && <input onFocus={(id) => this.props.onRowClick(this.props.condition.id)} className="value_field" type="text" value={this.props.condition.conditionValue} onChange={this.handleConditionValueChange} />}
+          </td>
+          <td align="right">
+            <button className="remove_button" onClick={(id) => this.props.onRemove(this.props.condition.id)}>Remove</button>
+          </td>
+        </tr>
+        <tr>
+          <td colSpan="6">
+            {this.props.idEdited === this.props.condition.id &&
+              <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
+            }
+          </td>
+        </tr>
+      </tbody>
     );
   }
 }
 
 function ConditionEditRow(props) {
   return (
-    <>
+    <div className="condition_edit_row">
     {props.list && props.list.map((item) => {
       return (
         <div key={item.id}>
@@ -48,7 +63,7 @@ function ConditionEditRow(props) {
         </div>
       );
     })}
-    </>
+    </div>
   );
 }
 
@@ -215,15 +230,13 @@ class RuleConditions extends React.Component {
 
   render() {
     return (
-      <>
+      <table className="rule_conditions">
         {this.props.conditions && this.props.conditions.map((ruleCondition) => {
           return (
-            <div key={ruleCondition.id}>
-              <ConditionRow idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartKeywordClick={this.handleFirstPartKeywordClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onParamNameChange={this.handleParamNameChange} onConditionValueChange={this.handleConditionValueChange} onRemove={this.props.onRemove} />
-            </div>
+            <ConditionRow key={ruleCondition.id} idEdited={this.state.idEdited} condition={ruleCondition} entity={this.state.entity} list={this.state.list} onFirstPartKeywordClick={this.handleFirstPartKeywordClick} onOperatorClick={this.handleOperatorClick} onEntityClick={this.handleEntityClick} onParamNameChange={this.handleParamNameChange} onConditionValueChange={this.handleConditionValueChange} onRowClick={this.props.onRowClick} onRemove={this.props.onRemove} />
           );
         })}
-      </>
+      </table>
     );
   }
 }

@@ -5,10 +5,10 @@ import RuleConditions from './RuleConditions';
 
 function FilteredResults(props) {
   return (
-    <table>
+    <table className="filtered_results">
       <tbody>
         <tr>
-          <td width="50%" valign="top">
+          <td className="left-content" valign="top">
             {props.step === 1 &&                
               <KeywordsPanel keywordsList={props.keywordsList} onClick={props.onKeywordsClick} onMouseOver={props.onMouseOver} />
             }
@@ -20,7 +20,7 @@ function FilteredResults(props) {
               <ValuesPanel valuesList={props.valuesList} onClick={props.onValuesClick} />
             }
           </td>
-          <td>
+          <td className="right-content">
             {props.step === 1 &&
               <DescriptionPanel helpText={props.helpText} />
             }
@@ -33,7 +33,7 @@ function FilteredResults(props) {
 
 function ValuesPanel(props) {
   return (
-    <>
+    <div className="values_panel">
       {props.valuesList && props.valuesList.map((entry) => {
         return (
           <div key={entry.id}>
@@ -41,13 +41,13 @@ function ValuesPanel(props) {
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
 function OperatorsPanel(props) {
   return (
-    <>
+    <div className="operators_panel">
       {props.operatorsList && props.operatorsList.map((operator) => {
         return (
           <div key={operator.id}>
@@ -55,13 +55,13 @@ function OperatorsPanel(props) {
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
 function KeywordsPanel(props) {
   return (
-    <>
+    <div className="keywords_panel">
       {props.keywordsList && props.keywordsList.map((keywords) => {
         return (
           <div key={keywords.id}>
@@ -69,21 +69,13 @@ function KeywordsPanel(props) {
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
 function DescriptionPanel(props) {
   return (
-    <>
-      {props.helpText}
-    </>
-  );
-}
-
-function ErrorLabel(props) {
-  return (
-    <div>{props.errorMessage}</div>
+    <div className="description_panel"><div className="content" dangerouslySetInnerHTML={{__html: props.helpText}} /></div>
   );
 }
 
@@ -116,8 +108,10 @@ class CustomRulesBuilder extends React.Component {
     this.handleRemove = this.handleRemove.bind(this);
     this.handleAutoComplete = this.handleAutoComplete.bind(this);
     this.handleConditionUpdate = this.handleConditionUpdate.bind(this);
+    this.handleHideFilteredResults = this.handleHideFilteredResults.bind(this);
     this.getParentsFromKeyword = this.getParentsFromKeyword.bind(this);
     this.getIdFromKeyword = this.getIdFromKeyword.bind(this);
+    this.handleRowClick = this.handleRowClick.bind(this);
   }
 
   UNSAFE_componentWillMount() {
@@ -427,17 +421,25 @@ class CustomRulesBuilder extends React.Component {
               if(value.compare === conditionValue.toLowerCase()) {
                 return value;
               }
+              return null;
             }).map((value) => {
               return value.original;
             });
           }
         }
 
+        const cleanKeywords = ruleParts[0] + (isSpecialKey === true ? " \"" + paramName + "\"" : "") + " " + operator + " \"" + originalValue + "\"";
+        let errorMessage = null;
+        if(this.state.ruleConditions.map((ruleCondition) => {return ruleCondition.condition;}).indexOf(cleanKeywords) > -1) {
+          isConditionValueValid = false;
+          errorMessage = "This condition already exists in this rule.";
+        }
+
         if(isConditionValueValid === true) {
           this.setState({
             ruleConditions: ruleConditions.concat([{
               id: this.indexCondition,
-              condition: this.state.keywords,
+              condition: cleanKeywords,
               firstPartKeywords: firstPartKeywords,
               isSpecialKey: isSpecialKey,
               fullOperatorsList: this.fullOperatorsList,
@@ -453,7 +455,7 @@ class CustomRulesBuilder extends React.Component {
           this.indexCondition++;
         } else {
           this.setState({
-            errorMessage: operatorObject.invalidText.replaceAll("{0}", ruleParts[0])
+            errorMessage: (errorMessage !== null ? errorMessage : operatorObject.invalidText.replaceAll("{0}", ruleParts[0]))
           });
         }
       }
@@ -517,14 +519,29 @@ class CustomRulesBuilder extends React.Component {
     return parents;
   }
 
+  handleHideFilteredResults() {
+    this.setState({step: 0});
+  }
+
+  handleRowClick(id) {
+    const keywordSelected = this.state.ruleConditions.filter((ruleCondition) => {
+      if(ruleCondition.id === id) {
+        return ruleCondition;
+      }
+      return false;
+    }).map((ruleCondition) => {
+      return ruleCondition.condition;
+    })[0];
+    this.setKeywords(keywordSelected);
+  }
+
   render() {
     return (
-      <>
-        <SearchBar keywords={this.state.keywords} onChange={this.handleFiltering} onSubmit={this.handleSubmit} onAutoComplete={this.handleAutoComplete} />
+      <div className="custom_rules_builder">
+        <SearchBar keywords={this.state.keywords} onChange={this.handleFiltering} onSubmit={this.handleSubmit} onAutoComplete={this.handleAutoComplete} hideFilteredResults={this.handleHideFilteredResults} errorMessage={this.state.errorMessage} />
         <FilteredResults keywordsList={this.state.keywordsList} operatorsList={this.state.operatorsList} valuesList={this.state.valuesList} isSpecialKey={this.state.isSpecialKey} step={this.state.step} helpText={this.state.helpText} onKeywordsClick={this.handleKeywordsClick} onOperatorsClick={this.handleOperatorsClick} onValuesClick={this.handleValuesClick} onMouseOver={this.handleMouseOver} />
-        <ErrorLabel errorMessage={this.state.errorMessage} />
-        <RuleConditions conditions={this.state.ruleConditions} onConditionUpdate={this.handleConditionUpdate} onRemove={this.handleRemove} getParentsFromKeyword={this.getParentsFromKeyword} getIdFromKeyword={this.getIdFromKeyword} />
-      </>
+        <RuleConditions conditions={this.state.ruleConditions} onConditionUpdate={this.handleConditionUpdate} onRemove={this.handleRemove} getParentsFromKeyword={this.getParentsFromKeyword} getIdFromKeyword={this.getIdFromKeyword} onRowClick={this.handleRowClick} />
+      </div>
     );
   }
 }
