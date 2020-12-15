@@ -520,7 +520,7 @@ class CustomRulesBuilder extends React.Component {
   }
 
   handleHideFilteredResults() {
-    this.setState({step: 0});
+    this.setState({step: 0, errorMessage: ""});
   }
 
   handleRowClick(id) {
