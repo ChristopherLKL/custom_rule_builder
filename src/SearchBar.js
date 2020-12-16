@@ -27,7 +27,7 @@ class SearchBar extends React.Component {
   render() {
     return (
       <div className="search_bar">
-        When <input autoFocus className="input_field" type="text" name="search" value={this.props.keywords} onChange={this.props.onChange} onKeyDown={this.handleKeyDown} size="100" />
+        When <input autoFocus className="input_field" type="text" name="search" value={this.props.keywords} onChange={this.props.onChange} onKeyDown={this.handleKeyDown} />
         <input className="add_button" type="button" name="add" value="Add" onClick={this.props.onSubmit} />
         <ErrorLabel errorMessage={this.props.errorMessage} />
       </div>

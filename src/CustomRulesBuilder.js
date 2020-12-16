@@ -5,7 +5,11 @@ import RuleConditions from './RuleConditions';
 
 function FilteredResults(props) {
   return (
-    <table className="filtered_results">
+    <table className={"filtered_results" + (props.step === 0 || 
+      (props.step === 1 && props.keywordsList.length === 0) ||
+      (((props.isSpecialKey !== true && props.step === 2) || (props.isSpecialKey === true && props.step === 3)) && props.operatorsList.length === 0) ||
+      (props.step === 3 && props.valuesList.length === 0) ?
+        " hidden_filter" : "")}>
       <tbody>
         <tr>
           <td className="left-content" valign="top">
@@ -370,7 +374,9 @@ class CustomRulesBuilder extends React.Component {
       objectKeywords["valuesList"] = [];
     }
     this.setState(objectKeywords);
-    this.handleFiltering(event);
+    if(this.state.step > 0) {
+      this.handleFiltering(event);
+    }
   }
 
   handleMouseOver(id) {
@@ -464,7 +470,10 @@ class CustomRulesBuilder extends React.Component {
             }]),
             keywords: "",
             errorMessage: "",
-            valuesList: []
+            keywordsList: [],
+            operatorsList: [],
+            valuesList: [],
+            step: 0
           });
           this.firstPartFix = null;
           this.fullOperatorsList = [];

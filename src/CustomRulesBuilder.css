@@ -58,8 +58,14 @@
     border: 1px #eceff1;
 	background-color: #ffffff;
 	position: absolute;
-	width: 900px;
+	width: 90%;
+	height: 200px;
+	margin-left: 50px;
     margin-top: 10px;
+}
+
+.filtered_results.hidden_filter {
+	display: none;
 }
 
 .filtered_results td.left-content {
