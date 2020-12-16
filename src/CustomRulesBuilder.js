@@ -97,6 +97,7 @@ class CustomRulesBuilder extends React.Component {
     this.indexCondition = 0;
     this.keywordsFullList = [];
     this.indexKeyword = 0;
+    this.firstPartFix = null;
     this.fullOperatorsList = [];
     this.fullValuesList = [];
     this.handleOperatorsClick = this.handleOperatorsClick.bind(this);
@@ -157,7 +158,7 @@ class CustomRulesBuilder extends React.Component {
     return "";
   }
 
-  getDataFromKeywordsFullList(ruleParts, property) {
+  getDataFromKeywordsFullList(ruleParts, property, isFull) {
     let value = null;
     for(let i = 0; value === null && i < this.keywordsFullList.length; i++) {
       if(this.keywordsFullList[i].keyword.trim() === ruleParts[0].trim() && this.keywordsFullList[i].description.operators !== undefined) {
@@ -187,8 +188,8 @@ class CustomRulesBuilder extends React.Component {
                   this.keywordsFullList[i].description.operators[j].negation === ruleParts[1].toUpperCase())) {
                 value = [];
                 for(let k = 0; k < this.keywordsFullList[i].description.operators[j].values.length; k++) {
-                  if(this.keywordsFullList[i].description.operators[j].values[k] !== ruleParts[2].replaceAll("\"", "").toUpperCase() &&
-                    this.keywordsFullList[i].description.operators[j].values[k].startsWith(ruleParts[2].replaceAll("\"", "").toUpperCase())) {
+                  if(isFull === true || (this.keywordsFullList[i].description.operators[j].values[k] !== ruleParts[2].replaceAll("\"", "").toUpperCase() &&
+                    this.keywordsFullList[i].description.operators[j].values[k].startsWith(ruleParts[2].replaceAll("\"", "").toUpperCase()))) {
                     value.push(this.keywordsFullList[i].description.operators[j].values[k]);
                   }
                 }
@@ -262,7 +263,21 @@ class CustomRulesBuilder extends React.Component {
           keywords = ruleParts[0] + " " + ruleParts[1] + " " + ruleParts[2].toUpperCase();
         } else {
           const type = this.getDataFromKeywordsFullList(ruleParts, "type");
+          this.fullOperatorsList = this.loadOperators(ruleParts, 1, operatorsList, true);
           if(type === "list") {
+            if(this.firstPartFix === null || this.firstPartFix.toLowerCase().trim() !== ruleParts[0].toLowerCase().trim()) {
+              this.firstPartFix = ruleParts[0];
+              let tmpFullValuesList = this.getDataFromKeywordsFullList(ruleParts, "values", true);
+              if(tmpFullValuesList.length > 0) {
+                let i = 0;
+                tmpFullValuesList = tmpFullValuesList.map((value) => {
+                  return (
+                      {id: i++, value: value}
+                  );
+                });
+              }
+              this.fullValuesList = tmpFullValuesList;
+            }
             valuesList = this.getDataFromKeywordsFullList(ruleParts, "values");
             if(valuesList.length > 0) {
               let i = 0;
@@ -271,9 +286,6 @@ class CustomRulesBuilder extends React.Component {
                     {id: i++, value: value}
                 );
               });
-            }
-            if(ruleParts[2].replaceAll("\"", "").trim() === "") {
-              this.fullValuesList = valuesList;
             }
             keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase() + " \"" + ruleParts[2].replaceAll("\"", "") + "\"";
           }
@@ -299,21 +311,23 @@ class CustomRulesBuilder extends React.Component {
     this.setState(state);
   }
 
-  loadOperators(ruleParts, partIndex, operatorsList) {
+  loadOperators(ruleParts, partIndex, operatorsList, isFull) {
     let id = this.getDataFromKeywordsFullList(ruleParts, "id");
     if(this.keywordsFullList[id] === undefined || this.keywordsFullList[id].description.standalone !== true) {
       return false;
     }
     for(let i = 0, j = 0, name = ""; this.keywordsFullList[id] !== undefined && i < this.keywordsFullList[id].description.operators.length; i++) {
-      if(ruleParts[partIndex].toUpperCase().trim() === "" ||
-        this.keywordsFullList[id].description.operators[i].name.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim())) {
+      if(isFull === true ||
+        (ruleParts[partIndex].toUpperCase().trim() === "" ||
+          this.keywordsFullList[id].description.operators[i].name.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim()))) {
         name = this.keywordsFullList[id].description.operators[i].name;
         operatorsList.push({id: j, name: name, operator: this.keywordsFullList[id].description.operators[i]});
         j++;
       }
-      if((ruleParts[partIndex].toUpperCase().trim() === "" && this.keywordsFullList[id].description.operators[i].negation !== undefined) ||
-        (this.keywordsFullList[id].description.operators[i].negation !== undefined &&
-          this.keywordsFullList[id].description.operators[i].negation.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim()))) {
+      if(isFull === true ||
+        ((ruleParts[partIndex].toUpperCase().trim() === "" && this.keywordsFullList[id].description.operators[i].negation !== undefined) ||
+          (this.keywordsFullList[id].description.operators[i].negation !== undefined &&
+            this.keywordsFullList[id].description.operators[i].negation.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim())))) {
         name = this.keywordsFullList[id].description.operators[i].negation;
         operatorsList.push({id: j, name: name, operator: this.keywordsFullList[id].description.operators[i]});
         j++;
@@ -452,6 +466,9 @@ class CustomRulesBuilder extends React.Component {
             errorMessage: "",
             valuesList: []
           });
+          this.firstPartFix = null;
+          this.fullOperatorsList = [];
+          this.fullValuesList = [];
           this.indexCondition++;
         } else {
           this.setState({

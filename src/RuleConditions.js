@@ -42,10 +42,15 @@ class ConditionRow extends React.Component {
           </td>
         </tr>
         <tr>
-          <td colSpan="6">
-            {this.props.idEdited === this.props.condition.id &&
-              <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
+          <td>
+            {this.props.entity === "keyword" && this.props.idEdited === this.props.condition.id &&
+              <ConditionEditRow id={this.props.condition.id} isSpecialKey={this.props.condition.isSpecialKey} keywords={this.props.condition.firstPartKeywords} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
             }
+          </td>
+          <td colSpan="3" align="left">
+          {this.props.entity === "operator" && this.props.idEdited === this.props.condition.id &&
+            <ConditionEditRow id={this.props.condition.id} entity={this.props.entity} list={this.props.list} onEntityClick={this.props.onEntityClick} />
+          }
           </td>
         </tr>
       </tbody>
@@ -54,12 +59,18 @@ class ConditionRow extends React.Component {
 }
 
 function ConditionEditRow(props) {
+  let pixels = 0;
+  if(props.keywords !== undefined && props.list.length > 0) {
+    let itemsCount = props.keywords.length;
+    let selectedCount = props.list[0].keyword.split(".").length;
+    pixels = 120 * (itemsCount - selectedCount) + (props.isSpecialKey === true ? 120 : 0);
+  }
   return (
-    <div className="condition_edit_row">
+    <div className={"condition_edit_row " + props.entity + "_column"}>
     {props.list && props.list.map((item) => {
       return (
         <div key={item.id}>
-          <button onClick={(entity, name, id) => props.onEntityClick(props.entity, item.name, props.id, item)}>{item.name}</button>
+          <button className={props.entity + "_button"} style={{marginRight: pixels + "px"}} onClick={(entity, name, id) => props.onEntityClick(props.entity, item.name, props.id, item)}>{item.name}</button>
         </div>
       );
     })}
@@ -122,7 +133,7 @@ class RuleConditions extends React.Component {
 
   handleFirstPartKeywordClick(object, id) {
     const parents = this.props.getParentsFromKeyword(object);
-    this.setState({entity: "firstPartKeyword", list: parents, idEdited: id});
+    this.setState({entity: "keyword", list: parents, idEdited: id});
   }
 
   handleOperatorClick(operatorsList, id) {
@@ -149,7 +160,7 @@ class RuleConditions extends React.Component {
       }
 //      console.log(newConditions);
       this.props.onConditionUpdate(newConditions);
-    } else if(entity === "firstPartKeyword") {
+    } else if(entity === "keyword") {
       const ruleConditions = this.props.conditions;
       const newSubKeywords = object.keyword.split(".");
       let newConditions = [];
