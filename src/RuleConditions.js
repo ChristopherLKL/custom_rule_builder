@@ -75,7 +75,7 @@ class ConditionRow extends React.Component {
 
 class ConditionEditRow extends React.Component {
   static propTypes = {
-    keywords: PropTypes.string,
+    keywords: PropTypes.array,
     list: PropTypes.array,
     id: PropTypes.number,
     isSpecialKey: PropTypes.bool,

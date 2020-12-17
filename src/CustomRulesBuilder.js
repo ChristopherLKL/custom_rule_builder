@@ -24,7 +24,7 @@ class FilteredResults extends React.Component {
       <table className={"filtered_results" + (this.props.step === 0 ||
         (this.props.step === 1 && this.props.keywordsList.length === 0) ||
         (((this.props.isSpecialKey !== true && this.props.step === 2) || (this.props.isSpecialKey === true && this.props.step === 3)) && this.props.operatorsList.length === 0) ||
-        (this.props.step === 3 && this.props.valuesList.length === 0) ?
+        (this.props.isSpecialKey !== true && this.props.step === 3 && this.props.valuesList.length === 0) ?
         " hidden_filter" : "")}>
         <tbody>
           <tr>
