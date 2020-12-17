@@ -1,89 +1,139 @@
-import React from 'react';
-import './CustomRulesBuilder.css';
-import SearchBar from './SearchBar';
-import RuleConditions from './RuleConditions';
+import React from "react";
+import "./css/CustomRulesBuilder.css";
+import SearchBar from "./SearchBar";
+import RuleConditions from "./RuleConditions";
+import PropTypes from "prop-types";
+import ReactHtmlParser from "react-html-parser";
 
-function FilteredResults(props) {
-  return (
-    <table className={"filtered_results" + (props.step === 0 || 
-      (props.step === 1 && props.keywordsList.length === 0) ||
-      (((props.isSpecialKey !== true && props.step === 2) || (props.isSpecialKey === true && props.step === 3)) && props.operatorsList.length === 0) ||
-      (props.step === 3 && props.valuesList.length === 0) ?
+class FilteredResults extends React.Component {
+  static propTypes = {
+    step: PropTypes.number,
+    isSpecialKey: PropTypes.bool,
+    keywordsList: PropTypes.array,
+    operatorsList: PropTypes.array,
+    valuesList: PropTypes.array,
+    onKeywordsClick: PropTypes.func,
+    onOperatorsClick: PropTypes.func,
+    onValuesClick: PropTypes.func,
+    onMouseOver: PropTypes.func,
+    helpText: PropTypes.string
+  }
+
+  render() {
+    return (
+      <table className={"filtered_results" + (this.props.step === 0 ||
+        (this.props.step === 1 && this.props.keywordsList.length === 0) ||
+        (((this.props.isSpecialKey !== true && this.props.step === 2) || (this.props.isSpecialKey === true && this.props.step === 3)) && this.props.operatorsList.length === 0) ||
+        (this.props.step === 3 && this.props.valuesList.length === 0) ?
         " hidden_filter" : "")}>
-      <tbody>
-        <tr>
-          <td className="left-content" valign="top">
-            {props.step === 1 &&                
-              <KeywordsPanel keywordsList={props.keywordsList} onClick={props.onKeywordsClick} onMouseOver={props.onMouseOver} />
-            }
-            {((props.isSpecialKey !== true && props.step === 2) ||
-              (props.isSpecialKey === true && props.step === 3)) &&
-              <OperatorsPanel operatorsList={props.operatorsList} onClick={props.onOperatorsClick} />
-            }
-            {props.step === 3 &&
-              <ValuesPanel valuesList={props.valuesList} onClick={props.onValuesClick} />
-            }
-          </td>
-          <td className="right-content">
-            {props.step === 1 &&
-              <DescriptionPanel helpText={props.helpText} />
-            }
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  );
+        <tbody>
+          <tr>
+            <td className="left-content" valign="top">
+              {this.props.step === 1 &&
+                <KeywordsPanel keywordsList={this.props.keywordsList} onClick={this.props.onKeywordsClick} onMouseOver={this.props.onMouseOver}/>
+              }
+              {((this.props.isSpecialKey !== true && this.props.step === 2) ||
+                (this.props.isSpecialKey === true && this.props.step === 3)) &&
+                <OperatorsPanel operatorsList={this.props.operatorsList} onClick={this.props.onOperatorsClick}/>
+              }
+              {this.props.step === 3 &&
+                <ValuesPanel valuesList={this.props.valuesList} onClick={this.props.onValuesClick}/>
+              }
+            </td>
+            <td className="right-content">
+              {this.props.step === 1 &&
+                <DescriptionPanel helpText={this.props.helpText}/>
+              }
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    );
+  }
 }
 
-function ValuesPanel(props) {
-  return (
-    <div className="values_panel">
-      {props.valuesList && props.valuesList.map((entry) => {
-        return (
-          <div key={entry.id}>
-            <button onClick={(value) => props.onClick(entry.value)}>{entry.value}</button>
-          </div>
-        );
-      })}
-    </div>
-  );
+class ValuesPanel extends React.Component {
+  static propTypes = {
+    valuesList: PropTypes.array,
+    onClick: PropTypes.func
+  }
+
+  render() {
+    return (
+      <div className="values_panel">
+        {this.props.valuesList && this.props.valuesList.map((entry) => {
+          return (
+            <div key={entry.id}>
+              <button onClick={() => this.props.onClick(entry.value)}>{entry.value}</button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 }
 
-function OperatorsPanel(props) {
-  return (
-    <div className="operators_panel">
-      {props.operatorsList && props.operatorsList.map((operator) => {
-        return (
-          <div key={operator.id}>
-            <button onClick={(name, value) => props.onClick(operator.name, operator.operator)}>{operator.name}</button>
-          </div>
-        );
-      })}
-    </div>
-  );
+class OperatorsPanel extends React.Component {
+  static propTypes = {
+    operatorsList: PropTypes.array,
+    onClick: PropTypes.func
+  }
+  render() {
+    return (
+      <div className="operators_panel">
+        {this.props.operatorsList && this.props.operatorsList.map((operator) => {
+          return (
+            <div key={operator.id}>
+              <button onClick={() => this.props.onClick(operator.name, operator.operator)}>{operator.name}</button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 }
 
-function KeywordsPanel(props) {
-  return (
-    <div className="keywords_panel">
-      {props.keywordsList && props.keywordsList.map((keywords) => {
-        return (
-          <div key={keywords.id}>
-            <button onClick={(id) => props.onClick(keywords.id)} onMouseOver={(id) => props.onMouseOver(keywords.id)}>{keywords.keyword}</button>
-          </div>
-        );
-      })}
-    </div>
-  );
+class KeywordsPanel extends React.Component {
+  static propTypes = {
+    keywordsList: PropTypes.array,
+    onClick: PropTypes.func,
+    onMouseOver: PropTypes.func
+  }
+
+  render() {
+    return (
+      <div className="keywords_panel">
+        {this.props.keywordsList && this.props.keywordsList.map((keywords) => {
+          return (
+            <div key={keywords.id}>
+              <button onClick={() => this.props.onClick(keywords.id)} onMouseOver={() => this.props.onMouseOver(keywords.id)}>{keywords.keyword}</button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 }
 
-function DescriptionPanel(props) {
-  return (
-    <div className="description_panel"><div className="content" dangerouslySetInnerHTML={{__html: props.helpText}} /></div>
-  );
+class DescriptionPanel extends React.Component {
+  static propTypes = {
+    helpText: PropTypes.string
+  }
+
+  render() {
+    return (
+      <div className="description_panel">
+        <div className="content">{ReactHtmlParser(this.props.helpText)}</div>
+      </div>
+    );
+  }
 }
 
 class CustomRulesBuilder extends React.Component {
+  static propTypes = {
+    description: PropTypes.object
+  }
+
   constructor(props) {
     super(props);
     this.state = {
@@ -127,7 +177,7 @@ class CustomRulesBuilder extends React.Component {
   }
 
   setKeywordFullList(rulePart, object) {
-    if(rulePart !== "" && this.keywordsFullList.indexOf(rulePart) < 0) {
+    if (rulePart !== "" && this.keywordsFullList.indexOf(rulePart) < 0) {
       let name = rulePart.substring(rulePart.lastIndexOf(".") + 1);
       this.keywordsFullList.push({id: this.indexKeyword, keyword: rulePart, name: name, description: object});
       this.indexKeyword++;
@@ -136,8 +186,8 @@ class CustomRulesBuilder extends React.Component {
 
   getIdFromKeyword(keyword) {
     let id = -1;
-    for(let i = 0; id < 0 && i < this.keywordsFullList.length; i++) {
-      if(this.keywordsFullList[i].keyword === keyword) {
+    for (let i = 0; id < 0 && i < this.keywordsFullList.length; i++) {
+      if (this.keywordsFullList[i].keyword === keyword) {
         id = this.keywordsFullList[i].id;
       }
     }
@@ -145,13 +195,13 @@ class CustomRulesBuilder extends React.Component {
   }
 
   buildChildrenList(object, rulePart) {
-    for(const property in object) {
+    for (const property in object) {
       const currentRulePart = (rulePart !== "" ? rulePart + "." + property : property);
       this.setKeywordFullList(currentRulePart, object[property]);
     }
 
-    for(const property in object) {
-      if(typeof object[property] === "object" && object[property].tokens !== undefined) {
+    for (const property in object) {
+      if (typeof object[property] === "object" && object[property].tokens !== undefined) {
         let currentRulePart = (rulePart !== "" ? rulePart + "." + property : property);
 
         currentRulePart = this.buildChildrenList(object[property].tokens, currentRulePart);
@@ -164,44 +214,43 @@ class CustomRulesBuilder extends React.Component {
 
   getDataFromKeywordsFullList(ruleParts, property, isFull) {
     let value = null;
-    for(let i = 0; value === null && i < this.keywordsFullList.length; i++) {
-      if(this.keywordsFullList[i].keyword.trim() === ruleParts[0].trim() && this.keywordsFullList[i].description.operators !== undefined) {
-        switch(property) {
-          case "id":
-            value = this.keywordsFullList[i].id;
-            break;
-          case "standalone":
-            value = this.keywordsFullList[i].description.standalone;
-            break;
-          case "specialkey":
-            value = this.keywordsFullList[i].description.specialKey;
-            break;
-          case "type":
-            for(let j = 0; value === null && j < this.keywordsFullList[i].description.operators.length; j++) {
-              if(this.keywordsFullList[i].description.operators[j].name === ruleParts[1].toUpperCase() ||
-                (this.keywordsFullList[i].description.operators[j].negation !== undefined &&
-                  this.keywordsFullList[i].description.operators[j].negation === ruleParts[1].toUpperCase())) {
-                value = this.keywordsFullList[i].description.operators[j].type;
-              }
+    for (let i = 0; value === null && i < this.keywordsFullList.length; i++) {
+      if (this.keywordsFullList[i].keyword.trim() === ruleParts[0].trim() && this.keywordsFullList[i].description.operators !== undefined) {
+        switch (property) {
+        case "id":
+          value = this.keywordsFullList[i].id;
+          break;
+        case "standalone":
+          value = this.keywordsFullList[i].description.standalone;
+          break;
+        case "specialkey":
+          value = this.keywordsFullList[i].description.specialKey;
+          break;
+        case "type":
+          for (let j = 0; value === null && j < this.keywordsFullList[i].description.operators.length; j++) {
+            if (this.keywordsFullList[i].description.operators[j].name === ruleParts[1].toUpperCase() ||
+              (this.keywordsFullList[i].description.operators[j].negation !== undefined &&
+                this.keywordsFullList[i].description.operators[j].negation === ruleParts[1].toUpperCase())) {
+              value = this.keywordsFullList[i].description.operators[j].type;
             }
-            break;
-          case "values":
-            for(let j = 0; value === null && j < this.keywordsFullList[i].description.operators.length; j++) {
-              if(this.keywordsFullList[i].description.operators[j].name === ruleParts[1].toUpperCase() ||
-                (this.keywordsFullList[i].description.operators[j].negation !== undefined &&
-                  this.keywordsFullList[i].description.operators[j].negation === ruleParts[1].toUpperCase())) {
-                value = [];
-                for(let k = 0; k < this.keywordsFullList[i].description.operators[j].values.length; k++) {
-                  if(isFull === true || (this.keywordsFullList[i].description.operators[j].values[k] !== ruleParts[2].replaceAll("\"", "").toUpperCase() &&
-                    this.keywordsFullList[i].description.operators[j].values[k].startsWith(ruleParts[2].replaceAll("\"", "").toUpperCase()))) {
-                    value.push(this.keywordsFullList[i].description.operators[j].values[k]);
-                  }
+          }
+          break;
+        case "values":
+          for (let j = 0; value === null && j < this.keywordsFullList[i].description.operators.length; j++) {
+            if (this.keywordsFullList[i].description.operators[j].name === ruleParts[1].toUpperCase() ||
+              (this.keywordsFullList[i].description.operators[j].negation !== undefined &&
+                this.keywordsFullList[i].description.operators[j].negation === ruleParts[1].toUpperCase())) {
+              value = [];
+              for (let k = 0; k < this.keywordsFullList[i].description.operators[j].values.length; k++) {
+                if (isFull === true || (this.keywordsFullList[i].description.operators[j].values[k] !== ruleParts[2].replaceAll("\"", "").toUpperCase() &&
+                  this.keywordsFullList[i].description.operators[j].values[k].startsWith(ruleParts[2].replaceAll("\"", "").toUpperCase()))) {
+                  value.push(this.keywordsFullList[i].description.operators[j].values[k]);
                 }
               }
             }
-            break;
-          default:
-            
+          }
+          break;
+        default:
         }
       }
     }
@@ -216,119 +265,119 @@ class CustomRulesBuilder extends React.Component {
     const keywordsList = [];
     const ruleParts = keywords.replaceAll("  ", " ").split(" ");
     const step = ruleParts.length;
-    switch(step) {
-      case 1:
-        this.keywordsFullList.map((entry) => {
-          if(entry.keyword.startsWith(ruleParts[0])) {
-            let pointsInSearchCount = 0;
-            for(let j = 0; j < ruleParts[0].length; j++) {
-              if(ruleParts[0][j] === ".") {
-                pointsInSearchCount++;
-              }
-            }
-            let pointsInListCount = 0;
-            for(let j = 0; j < entry.keyword.length; j++) {
-              if(entry.keyword[j] === ".") {
-                pointsInListCount++;
-              }
-            }
-            if(pointsInSearchCount === pointsInListCount) {
-              keywordsList.push(entry);
+    switch (step) {
+    case 1:
+      this.keywordsFullList.map((entry) => {
+        if (entry.keyword.startsWith(ruleParts[0])) {
+          let pointsInSearchCount = 0;
+          for (let j = 0; j < ruleParts[0].length; j++) {
+            if (ruleParts[0][j] === ".") {
+              pointsInSearchCount++;
             }
           }
-          return true;
-        });
-        break;
-      case 2:
-        isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
-        if(isSpecialKey === true) {
-          keywords = ruleParts[0] + " \"" + ruleParts[1].replaceAll("\"", "") + "\" ";
-          const event = {
-            target: {
-              value: keywords
+          let pointsInListCount = 0;
+          for (let j = 0; j < entry.keyword.length; j++) {
+            if (entry.keyword[j] === ".") {
+              pointsInListCount++;
             }
-          };
-          this.handleFiltering(event);
-        } else {
-          operatorsList = this.loadOperators(ruleParts, 1, operatorsList);
-          if(ruleParts[1].replaceAll("\"", "").trim() === "") {
-            this.fullOperatorsList = operatorsList;
           }
-          keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase();
+          if (pointsInSearchCount === pointsInListCount) {
+            keywordsList.push(entry);
+          }
         }
-        break;
-      case 3:
-        isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
-        if(isSpecialKey === true) {
-          operatorsList = this.loadOperators(ruleParts, 2, operatorsList);
-          if(ruleParts[2].replaceAll("\"", "").trim() === "") {
-            this.fullOperatorsList = operatorsList;
+        return true;
+      });
+      break;
+    case 2:
+      isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
+      if (isSpecialKey === true) {
+        keywords = ruleParts[0] + " \"" + ruleParts[1].replaceAll("\"", "") + "\" ";
+        const event = {
+          target: {
+            value: keywords
           }
-          keywords = ruleParts[0] + " " + ruleParts[1] + " " + ruleParts[2].toUpperCase();
-        } else {
-          const type = this.getDataFromKeywordsFullList(ruleParts, "type");
-          this.fullOperatorsList = this.loadOperators(ruleParts, 1, operatorsList, true);
-          if(type === "list") {
-            if(this.firstPartFix === null || this.firstPartFix.toLowerCase().trim() !== ruleParts[0].toLowerCase().trim()) {
-              this.firstPartFix = ruleParts[0];
-              let tmpFullValuesList = this.getDataFromKeywordsFullList(ruleParts, "values", true);
-              if(tmpFullValuesList.length > 0) {
-                let i = 0;
-                tmpFullValuesList = tmpFullValuesList.map((value) => {
-                  return (
-                      {id: i++, value: value}
-                  );
-                });
-              }
-              this.fullValuesList = tmpFullValuesList;
-            }
-            valuesList = this.getDataFromKeywordsFullList(ruleParts, "values");
-            if(valuesList.length > 0) {
+        };
+        this.handleFiltering(event);
+      } else {
+        operatorsList = this.loadOperators(ruleParts, 1, operatorsList);
+        if (ruleParts[1].replaceAll("\"", "").trim() === "") {
+          this.fullOperatorsList = operatorsList;
+        }
+        keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase();
+      }
+      break;
+    case 3:
+      isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
+      if (isSpecialKey === true) {
+        operatorsList = this.loadOperators(ruleParts, 2, operatorsList);
+        if (ruleParts[2].replaceAll("\"", "").trim() === "") {
+          this.fullOperatorsList = operatorsList;
+        }
+        keywords = ruleParts[0] + " " + ruleParts[1] + " " + ruleParts[2].toUpperCase();
+      } else {
+        const type = this.getDataFromKeywordsFullList(ruleParts, "type");
+        this.fullOperatorsList = this.loadOperators(ruleParts, 1, operatorsList, true);
+        if (type === "list") {
+          if (this.firstPartFix === null || this.firstPartFix.toLowerCase().trim() !== ruleParts[0].toLowerCase().trim()) {
+            this.firstPartFix = ruleParts[0];
+            let tmpFullValuesList = this.getDataFromKeywordsFullList(ruleParts, "values", true);
+            if (tmpFullValuesList.length > 0) {
               let i = 0;
-              valuesList = valuesList.map((value) => {
+              tmpFullValuesList = tmpFullValuesList.map((value) => {
                 return (
-                    {id: i++, value: value}
+                  {id: i++, value: value}
                 );
               });
             }
-            keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase() + " \"" + ruleParts[2].replaceAll("\"", "") + "\"";
+            this.fullValuesList = tmpFullValuesList;
           }
+          valuesList = this.getDataFromKeywordsFullList(ruleParts, "values");
+          if (valuesList.length > 0) {
+            let i = 0;
+            valuesList = valuesList.map((value) => {
+              return (
+                {id: i++, value: value}
+              );
+            });
+          }
+          keywords = ruleParts[0] + " " + ruleParts[1].toUpperCase() + " \"" + ruleParts[2].replaceAll("\"", "") + "\"";
         }
-        break;
-      default:
+      }
+      break;
+    default:
     }
     let state = {};
-    if(keywordsList.length > 0) {
+    if (keywordsList.length > 0) {
       state["keywordsList"] = keywordsList;
       state["helpText"] = keywordsList[0].description.help;
     }
-    if(operatorsList.length > 0) {
+    if (operatorsList.length > 0) {
       state["operatorsList"] = operatorsList;
     }
-    if(valuesList.length > 0) {
+    if (valuesList.length > 0) {
       state["valuesList"] = valuesList;
     }
     state["keywords"] = keywords;
     state["step"] = step;
     state["isSpecialKey"] = isSpecialKey;
-//    console.log(state);
+    // console.log(state);
     this.setState(state);
   }
 
   loadOperators(ruleParts, partIndex, operatorsList, isFull) {
     let id = this.getDataFromKeywordsFullList(ruleParts, "id");
-    if(this.keywordsFullList[id] === undefined || this.keywordsFullList[id].description.standalone !== true) {
+    if (this.keywordsFullList[id] === undefined || this.keywordsFullList[id].description.standalone !== true) {
       return false;
     }
-    for(let i = 0, j = 0, name = ""; this.keywordsFullList[id] !== undefined && i < this.keywordsFullList[id].description.operators.length; i++) {
-      if(isFull === true ||
+    for (let i = 0, j = 0, name = ""; this.keywordsFullList[id] !== undefined && i < this.keywordsFullList[id].description.operators.length; i++) {
+      if (isFull === true ||
         (ruleParts[partIndex].toUpperCase().trim() === "" ||
           this.keywordsFullList[id].description.operators[i].name.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim()))) {
         name = this.keywordsFullList[id].description.operators[i].name;
         operatorsList.push({id: j, name: name, operator: this.keywordsFullList[id].description.operators[i]});
         j++;
       }
-      if(isFull === true ||
+      if (isFull === true ||
         ((ruleParts[partIndex].toUpperCase().trim() === "" && this.keywordsFullList[id].description.operators[i].negation !== undefined) ||
           (this.keywordsFullList[id].description.operators[i].negation !== undefined &&
             this.keywordsFullList[id].description.operators[i].negation.toUpperCase().trim().startsWith(ruleParts[partIndex].toUpperCase().trim())))) {
@@ -340,7 +389,7 @@ class CustomRulesBuilder extends React.Component {
     return operatorsList;
   }
 
-  handleOperatorsClick(name, value) {
+  handleOperatorsClick(name) {
     const ruleParts = this.state.keywords.split(" ");
     let isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
     const keywords = ruleParts[0] + (isSpecialKey === true ? " " + ruleParts[1] : "") + " " + name + " \"\"";
@@ -352,7 +401,7 @@ class CustomRulesBuilder extends React.Component {
     const keywords = ruleParts[0] + " " + ruleParts[1] + " \"" + value + "\"";
     this.setKeywords(keywords, undefined, true);
   }
-  
+
   handleKeywordsClick(id) {
     const keywords = this.keywordsFullList[id].keyword + (this.keywordsFullList[id].description.tokens !== undefined ? "." : " ");
     this.setKeywords(keywords, id);
@@ -367,14 +416,14 @@ class CustomRulesBuilder extends React.Component {
     let objectKeywords = {
       keywords: keywords
     };
-    if(id !== undefined) {
+    if (id !== undefined) {
       objectKeywords["id"] = id;
     }
-    if(resetValuesList === true) {
+    if (resetValuesList === true) {
       objectKeywords["valuesList"] = [];
     }
     this.setState(objectKeywords);
-    if(this.state.step > 0) {
+    if (this.state.step > 0) {
       this.handleFiltering(event);
     }
   }
@@ -387,17 +436,17 @@ class CustomRulesBuilder extends React.Component {
     const ruleParts = this.state.keywords.split(" ");
     let keywords = null;
     let toAutoComplete = false;
-    if(ruleParts.length === 1 && this.state.keywordsList[0] !== undefined) {
+    if (ruleParts.length === 1 && this.state.keywordsList[0] !== undefined) {
       keywords = this.state.keywordsList[0].keyword;
       toAutoComplete = true;
-    } else if(this.state.isSpecialKey !== true && ruleParts.length === 2 && this.state.operatorsList[0] !== undefined) {
+    } else if (this.state.isSpecialKey !== true && ruleParts.length === 2 && this.state.operatorsList[0] !== undefined) {
       keywords = ruleParts[0] + " " + this.state.operatorsList[0].name;
       toAutoComplete = true;
-    } else if(this.state.isSpecialKey === true && ruleParts.length === 3 && this.state.operatorsList[0] !== undefined) {
+    } else if (this.state.isSpecialKey === true && ruleParts.length === 3 && this.state.operatorsList[0] !== undefined) {
       keywords = ruleParts[0] + " \"" + ruleParts[1].replaceAll("\"", "") + "\" " + this.state.operatorsList[0].name;
       toAutoComplete = true;
     }
-    if(toAutoComplete === true) {
+    if (toAutoComplete === true) {
       this.setKeywords(keywords);
     }
   }
@@ -408,37 +457,39 @@ class CustomRulesBuilder extends React.Component {
     const ruleParts = this.state.keywords.split(" ");
     const isStandalone = this.getDataFromKeywordsFullList(ruleParts, "standalone");
     const isSpecialKey = this.getDataFromKeywordsFullList(ruleParts, "specialkey");
-    if(isStandalone === true &&
+    if (isStandalone === true &&
       ((isSpecialKey === true && ruleParts.length === 4 && ruleParts[1].replaceAll("\"", "") !== "" && ruleParts[3].replaceAll("\"", "") !== "") ||
         (isSpecialKey !== true && ruleParts.length === 3 && ruleParts[2].replaceAll("\"", "") !== ""))) {
       const paramName = (isSpecialKey !== true ? null : ruleParts[1].replaceAll("\"", ""));
       const operator = (isSpecialKey !== true ? ruleParts[1] : ruleParts[2]);
       const conditionValue = (isSpecialKey !== true ? ruleParts[2].replaceAll("\"", "") : ruleParts[3].replaceAll("\"", ""));
       let operatorObject = null;
-      for(let i = 0; operatorObject === null && i < this.fullOperatorsList.length; i++) {
-        if(operator === this.fullOperatorsList[i].name) {
+      for (let i = 0; operatorObject === null && i < this.fullOperatorsList.length; i++) {
+        if (operator === this.fullOperatorsList[i].name) {
           operatorObject = this.fullOperatorsList[i].operator;
         }
       }
-      if(operatorObject !== null) {
+      if (operatorObject !== null) {
         let isConditionValueValid = true;
-        if(operatorObject.format !== undefined) {
+        if (operatorObject.format !== undefined) {
           const pattern = new RegExp(operatorObject.format);
-          if(pattern.test(conditionValue) !== true) {
+          if (pattern.test(conditionValue) !== true) {
             isConditionValueValid = false;
           }
         }
 
         let originalValue = conditionValue;
-        if(operatorObject.type === "list") {
+        if (operatorObject.type === "list") {
           let values = this.fullValuesList.map((valueObject) => {
             return ({original: valueObject.value, compare: valueObject.value.toLowerCase()});
           });
-          if(values.map((value) => {return value.compare;}).indexOf(conditionValue.toLowerCase()) < 0) {
+          if (values.map((value) => {
+            return value.compare;
+          }).indexOf(conditionValue.toLowerCase()) < 0) {
             isConditionValueValid = false;
           } else {
             originalValue = values.filter((value) => {
-              if(value.compare === conditionValue.toLowerCase()) {
+              if (value.compare === conditionValue.toLowerCase()) {
                 return value;
               }
               return null;
@@ -450,12 +501,14 @@ class CustomRulesBuilder extends React.Component {
 
         const cleanKeywords = ruleParts[0] + (isSpecialKey === true ? " \"" + paramName + "\"" : "") + " " + operator + " \"" + originalValue + "\"";
         let errorMessage = null;
-        if(this.state.ruleConditions.map((ruleCondition) => {return ruleCondition.condition;}).indexOf(cleanKeywords) > -1) {
+        if (this.state.ruleConditions.map((ruleCondition) => {
+          return ruleCondition.condition;
+        }).indexOf(cleanKeywords) > -1) {
           isConditionValueValid = false;
           errorMessage = "This condition already exists in this rule.";
         }
 
-        if(isConditionValueValid === true) {
+        if (isConditionValueValid === true) {
           this.setState({
             ruleConditions: ruleConditions.concat([{
               id: this.indexCondition,
@@ -493,10 +546,10 @@ class CustomRulesBuilder extends React.Component {
   buildRuleConditionFirstPartKeywords() {
     const firstParts = this.state.keywords.split(" ")[0].split(".");
     let firstPartsObject = [];
-    for(let currentPart="", i=0; i < firstParts.length; i++) {
-      currentPart += (currentPart !== "" ? "." : "" ) + firstParts[i];
+    for (let currentPart="", i=0; i < firstParts.length; i++) {
+      currentPart += (currentPart !== "" ? "." : "") + firstParts[i];
       const object = this.keywordsFullList.filter((keywordEntry) => {
-        if(keywordEntry.keyword === currentPart) {
+        if (keywordEntry.keyword === currentPart) {
           return keywordEntry;
         }
         return null;
@@ -509,8 +562,8 @@ class CustomRulesBuilder extends React.Component {
   handleRemove(id) {
     const ruleConditions = this.state.ruleConditions;
     let newConditions = [];
-    for(let i=0; i < ruleConditions.length; i++) {
-      if(ruleConditions[i].id !== id) {
+    for (let i=0; i < ruleConditions.length; i++) {
+      if (ruleConditions[i].id !== id) {
         newConditions.push({
           id: ruleConditions[i].id,
           condition: ruleConditions[i].condition,
@@ -528,16 +581,16 @@ class CustomRulesBuilder extends React.Component {
   }
 
   handleConditionUpdate(newConditions) {
-//    console.log(newConditions);
+    // console.log(newConditions);
     this.setState({ruleConditions: newConditions});
   }
 
   getParentsFromKeyword(keyword) {
     const parentCondition = keyword.substring(0, keyword.lastIndexOf("."));
     let parents = [];
-    for(let i=0; parents.length === 0 && i < this.keywordsFullList.length; i++) {
-      if(this.keywordsFullList[i].keyword === parentCondition) {
-        for(const parent in this.keywordsFullList[i].description.tokens) {
+    for (let i=0; parents.length === 0 && i < this.keywordsFullList.length; i++) {
+      if (this.keywordsFullList[i].keyword === parentCondition) {
+        for (const parent in this.keywordsFullList[i].description.tokens) {
           parents.push({id: this.getIdFromKeyword(parentCondition + "." + parent), name: parent, keyword: parentCondition + "." + parent, description: this.keywordsFullList[i].description.tokens[parent]});
         }
       }
@@ -551,7 +604,7 @@ class CustomRulesBuilder extends React.Component {
 
   handleRowClick(id) {
     const keywordSelected = this.state.ruleConditions.filter((ruleCondition) => {
-      if(ruleCondition.id === id) {
+      if (ruleCondition.id === id) {
         return ruleCondition;
       }
       return false;

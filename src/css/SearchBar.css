@@ -1,0 +1,28 @@
+.search_bar {
+  font-size: 15px;
+  margin-top: 15px;
+  padding: 20px;
+  background-color: #f8f8f8;
+}
+
+.search_bar input.input_field {
+  height: 30px;
+  width: 80%;
+  padding: 0 10px;
+}
+
+.add_button:hover {
+  background-color: #075096;
+  border-color: #075096;
+}
+
+.add_button {
+  height: 36px;
+  min-width: 80px;
+  background-color: #095fb3;
+  border: 1px solid #095fb3;
+  color: #fff;
+  margin: 5px;
+  cursor: pointer;
+  font: 400 13.3333px Arial;
+}

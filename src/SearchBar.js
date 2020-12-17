@@ -1,25 +1,41 @@
-import React from 'react';
-import './SearchBar.css';
+import React from "react";
+import "./css/SearchBar.css";
+import PropTypes from "prop-types";
 
-function ErrorLabel(props) {
-  return (
-    <div className="error_message">{props.errorMessage}</div>
-  );
+class ErrorLabel extends React.Component {
+  static propTypes = {
+    errorMessage: PropTypes.string
+  }
+
+  render() {
+    return (
+      <div className="error_message">{this.props.errorMessage}</div>
+    );
+  }
 }
 
 class SearchBar extends React.Component {
+  static propTypes = {
+    onAutoComplete: PropTypes.func,
+    hideFilteredResults: PropTypes.func,
+    keywords: PropTypes.string,
+    onChange: PropTypes.func,
+    onSubmit: PropTypes.func,
+    errorMessage: PropTypes.string
+  }
+
   constructor(props) {
     super(props);
     this.handleKeyDown = this.handleKeyDown.bind(this);
   }
 
   handleKeyDown(e) {
-    if(e.key === "Enter") {
+    if (e.key === "Enter") {
       this.props.onSubmit();
-    } else if(e.key === "Tab") {
+    } else if (e.key === "Tab") {
       e.preventDefault();
       this.props.onAutoComplete();
-    } else if(e.key === "Escape") {
+    } else if (e.key === "Escape") {
       this.props.hideFilteredResults();
     }
   }

@@ -1,0 +1,70 @@
+.rule_conditions {
+  width: 80%;
+  margin-top: 20px;
+}
+
+.condition_row button {
+  z-index: 5;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  text-align: center;
+  border-right: none;
+  line-height: normal;
+  line-height: initial;
+  min-width: 120px;
+}
+
+.condition_row input {
+  height: 15px;
+  width: 114px;
+  border: 1px solid #ff8040;
+}
+
+.condition_edit_row.keyword_column {
+  text-align: right;
+}
+
+.condition_edit_row.operator_column {
+  text-align: left;
+}
+
+.condition_row button.remove_button:hover {
+  color: #ffe6e6;
+  background: #f00;
+  cursor: default;
+  border: 1px solid #f00;
+}
+
+.condition_row button.remove_button {
+  color: #f00;
+  background: #ffe6e6;
+  border: 1px solid #f00;
+}
+
+.condition_row button.keyword_button:hover {
+  color: #fff;
+  background: #095fb3;
+  cursor: default;
+  border: 1px solid #095fb3;
+}
+
+.condition_row button.keyword_button {
+  color: #095fb3;
+  background: #dae7f4;
+  border: 1px solid #095fb3;
+}
+
+.condition_row button.operator_button:hover {
+  color: #fff;
+  background: #008000;
+  cursor: default;
+  border: 1px solid #008000;
+}
+
+.condition_row button.operator_button {
+  color: #008000;
+  background: #dfffdf;
+  border: 1px solid #008000;
+}
